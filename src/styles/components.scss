@@ -1,0 +1,216 @@
+@use 'variables' as variables;
+@use 'sass:color';
+@use 'sass:math';
+
+//HEADER
+.header {
+  background-color: variables.$primary;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: variables.$spacing-unit 0;
+
+  &__container {
+    display: flex;
+    padding: 1%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__logo img {
+    height: 5rem;
+    border: 1px solid variables.$secondary;
+    box-shadow: variables.$secondary 1px 1px;
+    border-radius: 50%;
+  }
+
+  &__nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0.2em;
+    gap: variables.$spacing-unit * 4;
+
+    a {
+      font-weight: 500;
+      font-size: large;
+      transition: color 0.3s;
+      color: variables.$secondary;
+      text-decoration: none;
+      padding: 0.5em;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+    #a3{
+      color: white;
+      background-color: variables.$secondary;
+      border-radius: 0.5em;
+
+      &:hover {
+        background-color: color.adjust(variables.$secondary, $lightness: 20%);
+      }
+    }
+  }
+}
+
+//SearchBar
+.search-bar {
+  display: flex;
+  margin: variables.$spacing-unit * 2 0;
+
+  input {
+    flex: 1;
+    padding: variables.$spacing-unit;
+    border: 1px solid lightgray;
+    border-radius: variables.$border-radius 0 0 variables.$border-radius;
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: variables.$primary;
+    }
+  }
+
+  .search-button {
+    background-color: variables.$primary;
+    color: white;
+    padding: variables.$spacing-unit variables.$spacing-unit * 2;
+    border-radius: 0 variables.$border-radius variables.$border-radius 0;
+    font-weight: 600;
+    letter-spacing: calc(variables.$spacing-unit / 10);
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: color.adjust(variables.$primary, $lightness: -10%);
+    }
+  }
+}
+
+//F-Recipe
+.featured-recipe {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  margin: variables.$spacing-unit * 3 0;
+
+  h2 {
+    width: 100%;
+    background: variables.$primary;
+    padding: 0.7em;
+    color: variables.$secondary;
+    font-size: 1.5rem;
+    margin-bottom: variables.$spacing-unit;
+  }
+
+  .featured-content{
+    display: flex;
+
+    hr{
+      color: lightgray;
+    }
+
+    img{
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .left{
+      width: 25%;
+
+      #dish{
+        width: 50%;
+        height: 150px;
+      }
+
+      #user{
+        width: 20%;
+        height: 60px;
+        border-radius: 50%;
+      }
+
+      h6{
+        margin: 0.3em;
+        letter-spacing: 0.05em;
+      }
+
+    }
+
+    .right{
+      width: 75%;
+      margin-left: variables.$spacing-unit;
+      padding: variables.$spacing-unit;
+      border-left: 2px solid variables.$secondary;
+
+      .read-more-button {
+        background-color: variables.$primary;
+        color: white;
+        padding: calc(variables.$spacing-unit/2) calc(variables.$spacing-unit / 2);
+        border-radius: variables.$border-radius;
+        font-weight: 600;
+        letter-spacing: calc(variables.$spacing-unit / 10);
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: color.adjust(variables.$primary, $lightness: -10%);
+        }
+      }
+    }
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    color: variables.$secondary;
+  }
+}
+
+//Recipe Cards
+.recipe-card {
+  background-color: variables.$card-bg;
+  border-radius: variables.$border-radius;
+  overflow: hidden;
+  transition: transform 0.3s;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  &__image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__title {
+    padding: variables.$spacing-unit;
+    font-size: 1.1rem;
+  }
+}
+
+//Recipe Cards
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: variables.$spacing-unit * 2;
+  margin: variables.$spacing-unit * 2 0;
+}
+
+//Popular Recipes
+//.popular-recipes {
+//  margin: variables.$spacing-unit * 3 0;
+//
+//  h2 {
+//    margin-bottom: variables.$spacing-unit;
+//    font-size: 1.5rem;
+//    font-weight: normal;
+//    color: variables.$secondary;
+//    background-color: variables.$primary;
+//    padding: variables.$spacing-unit/2;
+//  }
+//}
