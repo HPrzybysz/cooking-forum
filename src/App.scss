@@ -1,3 +1,6 @@
+@use'./styles/variables' as vars;
+@use 'sass:color';
+
 #root {
   background-color: rgba(255, 255 ,255, 0.8);
   border-radius: 10px;
@@ -48,4 +51,107 @@ body{
 
 .read-the-docs {
   color: #888;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: vars.$primary;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.3s;
+
+  &:hover {
+    color: color.adjust(vars.$primary, $lightness: -15%);
+  }
+}
+
+.featured-content {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    #dish {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 8px;
+    }
+
+    hr {
+      width: 100%;
+      border: 0;
+      border-top: 1px solid vars.$card-bg;
+    }
+
+    #user {
+      border-radius: 50%;
+    }
+
+    h6 {
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  .right {
+    flex: 2;
+
+    .featured-recipe__title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: vars.$primary;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid vars.$card-bg;
+      margin: 1rem 0;
+    }
+
+    #description {
+      color: vars.$body-text;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .read-more-button {
+      background-color: vars.$primary;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: color.adjust(vars.$primary, $lightness: -10%);
+      }
+    }
+  }
+}
+
+///////////
+@media (max-width: 768px) {
+  .featured-content {
+    flex-direction: column;
+
+    .left, .right {
+      flex: none;
+      width: 100%;
+    }
+  }
 }
