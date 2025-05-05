@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/components.scss';
+import '../styles/RecipeCard.scss';
 import { RecipeCardProps } from './types';
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ title, image }) => {

@@ -1,0 +1,52 @@
+@use 'variables' as variables;
+@use 'sass:color';
+
+.header {
+  background-color: variables.$primary;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: variables.$spacing-unit 0;
+
+  &__container {
+    display: flex;
+    padding: 1%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__logo img {
+    height: 5rem;
+    border: 1px solid variables.$secondary;
+    box-shadow: variables.$secondary 1px 1px;
+    border-radius: 50%;
+  }
+
+  &__nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0.2em;
+    gap: variables.$spacing-unit * 4;
+
+    a {
+      font-weight: 500;
+      font-size: large;
+      transition: color 0.3s;
+      color: variables.$secondary;
+      text-decoration: none;
+      padding: 0.5em;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+    #a3{
+      color: white;
+      background-color: variables.$secondary;
+      border-radius: 0.5em;
+
+      &:hover {
+        background-color: color.adjust(variables.$secondary, $lightness: 20%);
+      }
+    }
+  }
+}

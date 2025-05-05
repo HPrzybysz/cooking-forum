@@ -1,0 +1,29 @@
+@use 'variables' as variables;
+
+.recipe-card {
+  background-color: variables.$card-bg;
+  border-radius: variables.$border-radius;
+  overflow: hidden;
+  transition: transform 0.3s;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  &__image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__title {
+    padding: variables.$spacing-unit;
+    font-size: 1.1rem;
+  }
+}

@@ -1,0 +1,35 @@
+@use 'variables' as variables;
+@use 'sass:color';
+@use 'sass:math';
+
+.search-bar {
+  display: flex;
+  margin: variables.$spacing-unit * 2 0;
+
+  input {
+    flex: 1;
+    padding: variables.$spacing-unit;
+    border: 1px solid lightgray;
+    border-radius: variables.$border-radius 0 0 variables.$border-radius;
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: variables.$primary;
+    }
+  }
+
+  .search-button {
+    background-color: variables.$primary;
+    color: white;
+    padding: variables.$spacing-unit variables.$spacing-unit * 2;
+    border-radius: 0 variables.$border-radius variables.$border-radius 0;
+    font-weight: 600;
+    letter-spacing: variables.$spacing-unit / 10;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: color.adjust(variables.$primary, $lightness: -10%);
+    }
+  }
+}

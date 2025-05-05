@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../styles/components.scss';
+import '../styles/SearchBar.scss';
 
 const SearchBar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
