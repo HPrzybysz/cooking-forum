@@ -23,6 +23,7 @@
   &__nav ul {
     display: flex;
     list-style: none;
+    align-content: baseline;
     padding: 0.2em;
     gap: variables.$spacing-unit * 4;
 

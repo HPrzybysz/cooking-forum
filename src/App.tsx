@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import PopularSlider from "./components/PopularSlider.tsx";
-import RecipePage from './components/RecipePage';
+// import RecipePage from './components/RecipePage';
 import { Recipe } from './components/types.ts';
 import './App.scss';
 
@@ -60,7 +60,7 @@ const App: React.FC = () => {
                         >
                             ← Back to Home
                         </button>
-                        <RecipePage recipe={sampleRecipe} />
+                        {/*<RecipePage recipe={sampleRecipe} />*/}
                     </>
                 ) : (
                     <>
