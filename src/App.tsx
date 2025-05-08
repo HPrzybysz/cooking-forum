@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
+import { CssBaseline, ThemeProvider, createTheme} from "@mui/material";
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import PopularSlider from "./components/PopularSlider.tsx";
-// import RecipePage from './components/RecipePage';
+import RecipePage from './components/RecipePage';
 import { Recipe } from './components/types.ts';
 import './App.scss';
+import LoginPage from './components/LoginPage';
 
 const sampleRecipe: Recipe = {
     id: '1',
@@ -36,8 +38,22 @@ const sampleRecipe: Recipe = {
     tags: ['pasta', 'italian', 'dinner', 'comfort-food']
 };
 
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#F59E0B',
+        },
+        background: {
+            default: '#FFFFFF',
+            paper: '#FFFFFF',
+        },
+    },
+});
+
+
 const App: React.FC = () => {
     const [showRecipePage, setShowRecipePage] = useState(false);
+    const [showLoginPage, setShowLoginPage] = useState(false);
     const placeholderImages: string[] = Array(5).fill('https://placehold.co/150x150');
 
     const handleReadMore = () => {
@@ -48,58 +64,82 @@ const App: React.FC = () => {
         setShowRecipePage(false);
     };
 
+    const handleLoginClick = () => {
+        setShowLoginPage(true);
+    };
+
+    const handleCloseLogin = () => {
+        setShowLoginPage(false);
+    };
+
     return (
-        <div className="app">
-            <Header />
-            <main className="main-content">
-                {showRecipePage ? (
-                    <>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <div className="app">
+                <Header onLoginClick={handleLoginClick} />
+                {showLoginPage && (
+                    <div className="login-modal">
                         <button
-                            onClick={handleBackToHome}
-                            className="back-button"
+                            className="close-login"
+                            onClick={handleCloseLogin}
                         >
-                            ← Back to Home
+                            ×
                         </button>
-                        {/*<RecipePage recipe={sampleRecipe} />*/}
-                    </>
-                ) : (
-                    <>
-                        <SearchBar/>
-
-                        <section className="featured-recipe">
-                            <h2>Recipe of the day</h2>
-
-                            <div className="featured-content">
-                                <div className="left">
-                                    <img id="dish" src="https://placehold.co/150x150" alt="Dish Image"/>
-                                    <hr/>
-                                    <img id="user" src="https://placehold.co/60x60" alt="user"/>
-                                    <h6>Jan Kowalski</h6>
-                                </div>
-
-                                <div className="right">
-                                    <h1 className="featured-recipe__title">{sampleRecipe.title}</h1>
-                                    <hr/>
-                                    <p id="description">
-                                        {sampleRecipe.instructions.join(' ').substring(0, 200)}...
-                                    </p>
-                                    <button
-                                        className="read-more-button"
-                                        onClick={handleReadMore}
-                                    >
-                                        Read more
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="popular-recipes">
-                            <PopularSlider images={placeholderImages}/>
-                        </section>
-                    </>
+                        <LoginPage />
+                    </div>
                 )}
-            </main>
-        </div>
+                {!showLoginPage && (
+                    <main className="main-content">
+                        {showRecipePage ? (
+                            <>
+                                <button
+                                    onClick={handleBackToHome}
+                                    className="back-button"
+                                >
+                                    ← Back to Home
+                                </button>
+                                <RecipePage recipe={sampleRecipe} />
+                            </>
+                        ) : (
+                            <>
+                                <SearchBar/>
+
+                                <section className="featured-recipe">
+                                    <h2>Recipe of the day</h2>
+
+                                    <div className="featured-content">
+                                        <div className="left">
+                                            <img id="dish" src="https://placehold.co/150x150" alt="Dish Image"/>
+                                            <hr/>
+                                            <img id="user" src="https://placehold.co/60x60" alt="user"/>
+                                            <h6>Jan Kowalski</h6>
+                                        </div>
+
+                                        <div className="right">
+                                            <h1 className="featured-recipe__title">{sampleRecipe.title}</h1>
+                                            <hr/>
+                                            <p id="description">
+                                                {sampleRecipe.instructions.join(' ').substring(0, 200)}...
+                                            </p>
+                                            <button
+                                                className="read-more-button"
+                                                onClick={handleReadMore}
+                                            >
+                                                Read more
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="popular-recipes">
+                                    <PopularSlider images={placeholderImages}/>
+                                </section>
+                            </>
+                        )}
+                    </main>
+                )}
+            </div>
+        </ThemeProvider>
     );
 };
 

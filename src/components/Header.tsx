@@ -3,10 +3,14 @@ import '../styles/Header.scss';
 import logo from '../assets/logo.png';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { InputLabel, Box, MenuItem } from '@mui/material';
+import { InputLabel, Box, MenuItem, Button } from '@mui/material';
+import LoginIcon from '@mui/icons-material/Login';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+    onLoginClick: () => void;
+}
 
+const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
     const [category, setCategory] = React.useState('');
 
     const handleChange = (event: SelectChangeEvent) => {
@@ -32,7 +36,7 @@ const Header: React.FC = () => {
                                         value={category}
                                         label="Categories"
                                         onChange={handleChange}
-                                        >
+                                    >
                                         <MenuItem value={"breakfast"}>Breakfast</MenuItem>
                                         <MenuItem value={"dinner"}>Dinner</MenuItem>
                                         <MenuItem value={"desserts"}>Deserts</MenuItem>
@@ -43,7 +47,25 @@ const Header: React.FC = () => {
                                 </FormControl>
                             </Box>
                         </a></li>
-                        <li><a id="a3" href="#">Log in / Sign Up</a></li>
+                        <li>
+                            <Button
+                                className={'login-button'}
+                                variant="outlined"
+                                color="inherit"
+                                size="medium"
+                                endIcon={<LoginIcon/>}
+                                onClick={onLoginClick}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    '&:hover': {
+                                        color: '#F59E0B'
+                                    }
+                                }}
+                            >
+                                Log in / Sign Up
+                            </Button>
+                        </li>
                     </ul>
                 </nav>
             </div>
