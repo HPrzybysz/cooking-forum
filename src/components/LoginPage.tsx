@@ -72,7 +72,36 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', display: 'flex' }}>
+        <Box sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            backgroundColor: 'rgba(0,0,0,0.9)'
+        }}>
+            <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: -1,
+                overflow: 'hidden'
+            }}>
+                <Fade in={fade} timeout={500}>
+                    <Box
+                        sx={{
+                            backgroundImage: `url(${backgroundImages[currentImageIndex]})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            width: '100%',
+                            height: '100%',
+                            position: 'absolute',
+                        }}
+                    />
+                </Fade>
+            </Box>
+
             <StyledBackgroundBox>
                 <Fade in={fade} timeout={500}>
                     <Box
@@ -89,7 +118,12 @@ const LoginPage: React.FC = () => {
                 </Fade>
             </StyledBackgroundBox>
 
-            <Container maxWidth={false} sx={{ display: 'flex', flexGrow: 1 }}>
+            <Container maxWidth={false} sx={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
                 <Grid container sx={{ minHeight: '100vh' }}>
                     {/* Left side */}
                     <Grid

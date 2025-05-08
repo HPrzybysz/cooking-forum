@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
-import { CssBaseline, ThemeProvider, createTheme} from "@mui/material";
+import {CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import PopularSlider from "./components/PopularSlider.tsx";
@@ -78,14 +80,24 @@ const App: React.FC = () => {
             <div className="app">
                 <Header onLoginClick={handleLoginClick} />
                 {showLoginPage && (
-                    <div className="login-modal">
-                        <button
-                            className="close-login"
-                            onClick={handleCloseLogin}
-                        >
-                            ×
-                        </button>
-                        <LoginPage />
+                    <div className="login-modal-overlay">
+                        <div className="login-modal">
+                            <IconButton
+                                className="close-login"
+                                onClick={handleCloseLogin}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 20,
+                                    right: 20,
+                                    color: 'white',
+                                    fontSize: '2rem',
+                                    zIndex: 1001
+                                }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                            <LoginPage />
+                        </div>
                     </div>
                 )}
                 {!showLoginPage && (
