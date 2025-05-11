@@ -1,38 +1,30 @@
-.login-modal {
+.login-modal-overlay {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1200;
+  overflow: hidden;
+}
+
+.login-page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-
-  .close-login {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 2rem;
-    cursor: pointer;
-    z-index: 1001;
-  }
-}
-
-.login-page {
-  min-height: 100vh;
-  display: flex;
+  z-index: 1200;
 
   .background-slider {
-    position: fixed !important;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
+    overflow: hidden;
 
     .background-image {
       position: absolute;
@@ -40,109 +32,147 @@
       height: 100%;
       background-size: cover;
       background-position: center;
+      transition: opacity 1s ease-in-out;
+      will-change: opacity;
     }
   }
 
-  .login-content {
-    position: relative;
-    z-index: 1;
-    backdrop-filter: blur(5px);
-    width: 100%;
+  .left-image-side {
+    width: 50%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    position: relative;
+    overflow: hidden;
+    display: none;
 
-  .login-container {
-    display: flex;
-    flex-grow: 1;
-    min-height: 100vh;
-
-    .left-side {
-      display: none;
-
-      @media (min-width: 600px) {
-        display: block;
-        position: relative;
-        width: 50%;
-
-        &::after {
-          content: '';
-          position: absolute;
-          right: 0;
-          top: 0;
-          bottom: 0;
-          width: 1px;
-          background-color: rgba(255, 255, 255, 0.3);
-        }
-      }
+    @media (min-width: 900px) {
+      display: block;
     }
 
-    .right-side {
+    .slider-image-container {
+      position: absolute;
       width: 100%;
-      background-color: white;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      overflow: hidden;
 
-      @media (min-width: 600px) {
-        width: 50%;
+      .slider-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: opacity 1s ease-in-out;
+        will-change: opacity;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: rgba(255,255,255,0.3);
+      z-index: 2;
+    }
+  }
+
+  .right-form-side {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+
+    @media (min-width: 900px) {
+      width: 50%;
+    }
+
+    .form-paper {
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+      .close-button-container {
+        display: flex;
+        justify-content: flex-end;
+
+        .MuiIconButton-root {
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+          }
+        }
       }
 
-      .login-form {
+      .form-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-subtitle {
+        color: #6B7280;
+        margin-bottom: 2rem;
+      }
+
+      .form-field {
+        margin-bottom: 1.5rem;
+      }
+
+      .forgot-password-link {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+      }
+
+      .submit-button {
         width: 100%;
-        max-width: 400px;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: none;
+      }
 
-        h1 {
-          font-size: 2rem;
-          margin-bottom: 0.5rem;
-          color: #333;
-        }
+      .form-switch-text {
+        text-align: center;
+        margin-top: 1rem;
 
-        .subtitle {
-          color: #6B7280;
-          margin-bottom: 2rem;
-        }
-
-        .form-field {
-          margin-bottom: 1.5rem;
-
-          .MuiTextField-root {
-            width: 100%;
-          }
-        }
-
-        .forgot-password {
-          display: flex;
-          justify-content: flex-end;
-          margin-top: 0.5rem;
-        }
-
-        .submit-button {
-          width: 100%;
-          padding: 12px;
-          margin-top: 1.5rem;
-          margin-bottom: 1rem;
-          border-radius: 8px;
-          font-weight: 600;
-          text-transform: none;
-        }
-
-        .switch-form {
-          text-align: center;
-          margin-top: 1rem;
-
-          a {
-            font-weight: 500;
-            cursor: pointer;
-          }
+        .switch-link {
+          font-weight: 500;
+          cursor: pointer;
         }
       }
     }
+  }
+}
+
+.form-field-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+
+  .form-field {
+    flex: 1;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.MuiFormControlLabel-root {
+  align-items: flex-start;
+  margin-top: 0.5rem;
+
+  .MuiCheckbox-root {
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }

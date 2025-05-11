@@ -96,7 +96,7 @@ const App: React.FC = () => {
                             >
                                 <CloseIcon />
                             </IconButton>
-                            <LoginPage />
+                            <LoginPage onClose={handleCloseLogin} />
                         </div>
                     </div>
                 )}
