@@ -25,9 +25,9 @@
     list-style: none;
     align-content: baseline;
     padding: 0.2em;
-    gap: variables.$spacing-unit * 4;
+    gap: variables.$spacing-unit * 2;
 
-    a {
+    .MuiButton-root {
       font-weight: 500;
       font-size: large;
       transition: color 0.3s;
@@ -37,16 +37,7 @@
 
       &:hover {
         color: white;
-      }
-    }
-
-    #a3{
-      color: white;
-      background-color: variables.$secondary;
-      border-radius: 0.5em;
-
-      &:hover {
-        background-color: color.adjust(variables.$secondary, $lightness: 20%);
+        background-color: transparent;
       }
     }
   }

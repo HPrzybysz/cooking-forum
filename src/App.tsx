@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
-import {CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
+
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import PopularSlider from "./components/PopularSlider.tsx";
@@ -9,6 +11,7 @@ import RecipePage from './components/RecipePage';
 import { Recipe } from './components/types.ts';
 import './App.scss';
 import LoginPage from './components/LoginPage';
+import CategoriesPage from './components/CategoriesPage';
 
 const sampleRecipe: Recipe = {
     id: '1',
@@ -52,19 +55,9 @@ const theme = createTheme({
     },
 });
 
-
 const App: React.FC = () => {
-    const [showRecipePage, setShowRecipePage] = useState(false);
     const [showLoginPage, setShowLoginPage] = useState(false);
     const placeholderImages: string[] = Array(5).fill('https://placehold.co/150x150');
-
-    const handleReadMore = () => {
-        setShowRecipePage(true);
-    };
-
-    const handleBackToHome = () => {
-        setShowRecipePage(false);
-    };
 
     const handleLoginClick = () => {
         setShowLoginPage(true);
@@ -74,84 +67,68 @@ const App: React.FC = () => {
         setShowLoginPage(false);
     };
 
-    return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <div className="app">
-                <Header onLoginClick={handleLoginClick} />
-                {showLoginPage && (
-                    <div className="login-modal-overlay">
-                        <div className="login-modal">
-                            <IconButton
-                                className="close-login"
-                                onClick={handleCloseLogin}
-                                sx={{
-                                    position: 'absolute',
-                                    top: 20,
-                                    right: 20,
-                                    color: 'white',
-                                    fontSize: '2rem',
-                                    zIndex: 1001
-                                }}
-                            >
-                                <CloseIcon />
-                            </IconButton>
-                            <LoginPage onClose={handleCloseLogin} />
-                        </div>
+    const HomePage = () => (
+        <main className="main-content">
+            <SearchBar/>
+            <section className="featured-recipe">
+                <h2>Recipe of the day</h2>
+                <div className="featured-content">
+                    <div className="left">
+                        <img id="dish" src="https://placehold.co/150x150" alt="Dish Image"/>
+                        <hr/>
+                        <img id="user" src="https://placehold.co/60x60" alt="user"/>
+                        <h6>Jan Kowalski</h6>
                     </div>
-                )}
-                {!showLoginPage && (
-                    <main className="main-content">
-                        {showRecipePage ? (
-                            <>
-                                <button
-                                    onClick={handleBackToHome}
-                                    className="back-button"
+                    <div className="right">
+                        <h1 className="featured-recipe__title">{sampleRecipe.title}</h1>
+                        <hr/>
+                        <p id="description">
+                            {sampleRecipe.instructions.join(' ').substring(0, 200)}...
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section className="popular-recipes">
+                <PopularSlider images={placeholderImages}/>
+            </section>
+        </main>
+    );
+
+    return (
+        <Router>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <div className="app">
+                    <Header onLoginClick={handleLoginClick} />
+                    {showLoginPage && (
+                        <div className="login-modal-overlay">
+                            <div className="login-modal">
+                                <IconButton
+                                    className="close-login"
+                                    onClick={handleCloseLogin}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 20,
+                                        right: 20,
+                                        color: 'white',
+                                        fontSize: '2rem',
+                                        zIndex: 1001
+                                    }}
                                 >
-                                    ← Back to Home
-                                </button>
-                                <RecipePage recipe={sampleRecipe} />
-                            </>
-                        ) : (
-                            <>
-                                <SearchBar/>
-
-                                <section className="featured-recipe">
-                                    <h2>Recipe of the day</h2>
-
-                                    <div className="featured-content">
-                                        <div className="left">
-                                            <img id="dish" src="https://placehold.co/150x150" alt="Dish Image"/>
-                                            <hr/>
-                                            <img id="user" src="https://placehold.co/60x60" alt="user"/>
-                                            <h6>Jan Kowalski</h6>
-                                        </div>
-
-                                        <div className="right">
-                                            <h1 className="featured-recipe__title">{sampleRecipe.title}</h1>
-                                            <hr/>
-                                            <p id="description">
-                                                {sampleRecipe.instructions.join(' ').substring(0, 200)}...
-                                            </p>
-                                            <button
-                                                className="read-more-button"
-                                                onClick={handleReadMore}
-                                            >
-                                                Read more
-                                            </button>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <section className="popular-recipes">
-                                    <PopularSlider images={placeholderImages}/>
-                                </section>
-                            </>
-                        )}
-                    </main>
-                )}
-            </div>
-        </ThemeProvider>
+                                    <CloseIcon />
+                                </IconButton>
+                                <LoginPage onClose={handleCloseLogin} />
+                            </div>
+                        </div>
+                    )}
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/categories" element={<CategoriesPage />} />
+                        <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe} />} />
+                    </Routes>
+                </div>
+            </ThemeProvider>
+        </Router>
     );
 };
 
