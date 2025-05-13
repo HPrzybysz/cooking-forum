@@ -9,7 +9,9 @@ import {
     Checkbox,
     FormControlLabel,
     IconButton,
-    Fade
+    Fade,
+    CircularProgress,
+    Alert
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
@@ -29,7 +31,13 @@ interface SignUpForm {
     acceptTerms: boolean;
 }
 
-const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> = ({onClose, switchToLogin}) => {
+interface SignUpPageProps {
+    onClose: () => void;
+    switchToLogin: () => void;
+    onSignupSuccess?: () => void;
+}
+
+const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignupSuccess}) => {
     const [formData, setFormData] = useState<SignUpForm>({
         firstName: '',
         lastName: '',
@@ -38,7 +46,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
         confirmPassword: '',
         acceptTerms: false
     });
-
+    const [errors, setErrors] = useState<Partial<SignUpForm>>({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
 
@@ -54,17 +64,68 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
         return () => clearInterval(interval);
     }, []);
 
+    const validateForm = (): boolean => {
+        const newErrors: Partial<SignUpForm> = {};
+
+        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+            newErrors.email = 'Email is invalid';
+        }
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+        if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        }
+        if (!formData.acceptTerms) {
+            newErrors.acceptTerms = true;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value, checked} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: name === 'acceptTerms' ? checked : value
         }));
+
+        // Clear error when user starts typing
+        if (errors[name as keyof SignUpForm]) {
+            setErrors(prev => ({...prev, [name]: undefined}));
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Sign Up submitted:', formData);
+        setSubmitError(null);
+
+        if (!validateForm()) return;
+
+        setIsLoading(true);
+
+        try {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // In a real app, you would call your signup API here
+            console.log('Sign Up submitted:', formData);
+
+            // Call success handler if provided
+            onSignupSuccess?.();
+            onClose();
+        } catch (error) {
+            setSubmitError('Signup failed. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const BlackBackgroundLayer = () => (
@@ -100,6 +161,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                     objectFit: 'cover',
                                     opacity: fade ? 1 : 0
                                 }}
+                                alt="Background"
                             />
                         </Box>
                     </Fade>
@@ -122,6 +184,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                     objectFit: 'cover',
                                     opacity: fade ? 1 : 0
                                 }}
+                                alt="Background"
                             />
                         </Box>
                     </Fade>
@@ -129,7 +192,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
 
                 {/* Right side */}
                 <Box className="right-form-side">
-                    <Paper className="form-paper">
+                    <Paper className="form-paper" elevation={6}>
                         <Box className="close-button-container">
                             <IconButton
                                 onClick={onClose}
@@ -150,6 +213,12 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                             Join our cooking community
                         </Typography>
 
+                        {submitError && (
+                            <Alert severity="error" sx={{mb: 2}}>
+                                {submitError}
+                            </Alert>
+                        )}
+
                         <form onSubmit={handleSubmit}>
                             <Box sx={{display: 'flex', gap: 2}}>
                                 <TextField
@@ -161,6 +230,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                     onChange={handleInputChange}
                                     margin="normal"
                                     required
+                                    error={!!errors.firstName}
+                                    helperText={errors.firstName}
+                                    disabled={isLoading}
                                 />
                                 <TextField
                                     className="form-field"
@@ -171,6 +243,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                     onChange={handleInputChange}
                                     margin="normal"
                                     required
+                                    error={!!errors.lastName}
+                                    helperText={errors.lastName}
+                                    disabled={isLoading}
                                 />
                             </Box>
 
@@ -184,6 +259,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                 onChange={handleInputChange}
                                 margin="normal"
                                 required
+                                error={!!errors.email}
+                                helperText={errors.email}
+                                disabled={isLoading}
                             />
 
                             <TextField
@@ -196,6 +274,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                 onChange={handleInputChange}
                                 margin="normal"
                                 required
+                                error={!!errors.password}
+                                helperText={errors.password}
+                                disabled={isLoading}
                             />
 
                             <TextField
@@ -208,6 +289,9 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                 onChange={handleInputChange}
                                 margin="normal"
                                 required
+                                error={!!errors.confirmPassword}
+                                helperText={errors.confirmPassword}
+                                disabled={isLoading}
                             />
 
                             <FormControlLabel
@@ -218,10 +302,11 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                         onChange={handleInputChange}
                                         required
                                         color="primary"
+                                        disabled={isLoading}
                                     />
                                 }
                                 label={
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" color={errors.acceptTerms ? 'error' : 'inherit'}>
                                         I agree to the Terms of Service
                                     </Typography>
                                 }
@@ -234,8 +319,20 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                 variant="contained"
                                 size="large"
                                 fullWidth
+                                disabled={isLoading}
+                                sx={{
+                                    height: '48px',
+                                    backgroundColor: '#F59E0B',
+                                    '&:hover': {
+                                        backgroundColor: '#D48A08'
+                                    }
+                                }}
                             >
-                                Sign Up
+                                {isLoading ? (
+                                    <CircularProgress size={24} color="inherit"/>
+                                ) : (
+                                    'Sign Up'
+                                )}
                             </Button>
 
                             <Typography className="form-switch-text">

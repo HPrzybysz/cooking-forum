@@ -176,3 +176,14 @@
     padding-bottom: 0;
   }
 }
+
+
+@media (max-width: 768px) {
+  .form-paper {
+    padding: 1.5rem;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+}

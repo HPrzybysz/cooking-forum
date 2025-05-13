@@ -109,7 +109,7 @@ const App: React.FC = () => {
         setShowLoginPage(false);
     };
 
-    const [isLoggedIn, setIsLoggedIn] = useState(false); //Temp for testing
+    const [isLoggedIn, setIsLoggedIn] = useState(true); //Temp for testing false for not logged in true for logged in
 
 
     return (
@@ -117,7 +117,11 @@ const App: React.FC = () => {
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
                 <div className="app">
-                    <Header onLoginClick={handleLoginClick} isLoggedIn={isLoggedIn} />
+                    <Header
+                        onLoginClick={handleLoginClick}
+                        onLogoutClick={() => setIsLoggedIn(true)}
+                        isLoggedIn={isLoggedIn}
+                    />
                     {showLoginPage && (
                         <div className="login-modal-overlay">
                             <div className="login-modal">
@@ -135,7 +139,10 @@ const App: React.FC = () => {
                                 >
                                     <CloseIcon/>
                                 </IconButton>
-                                <LoginPage onClose={handleCloseLogin}/>
+                                <LoginPage
+                                    onClose={handleCloseLogin}
+                                    onLoginSuccess={() => setIsLoggedIn(true)}
+                                />
                             </div>
                         </div>
                     )}
@@ -143,7 +150,7 @@ const App: React.FC = () => {
                         <Route path="/" element={<HomePageContent/>}/>
                         <Route path="/categories" element={<CategoriesPage/>}/>
                         <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe}/>}/>
-                        <Route path="/add-recipe" element={<AddRecipePage />} />
+                        <Route path="/add-recipe" element={<AddRecipePage/>}/>
                     </Routes>
                 </div>
             </ThemeProvider>

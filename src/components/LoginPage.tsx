@@ -7,7 +7,9 @@ import {
     Link,
     Paper,
     Fade,
-    IconButton
+    IconButton,
+    CircularProgress,
+    Alert
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
@@ -25,7 +27,12 @@ interface LoginForm {
     password: string;
 }
 
-const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
+interface LoginPageProps {
+    onClose: () => void;
+    onLoginSuccess: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const [formData, setFormData] = useState<LoginForm>({
@@ -33,7 +40,8 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
         password: ''
     });
     const [showSignUp, setShowSignUp] = useState(false);
-
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const BlackBackgroundLayer = () => (
         <Box sx={{
@@ -67,9 +75,27 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            //sim API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // mock cred valid.
+            if (formData.email && formData.password.length >= 6) {
+                onLoginSuccess();
+                onClose();
+            } else {
+                throw new Error('Invalid email or password');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -79,6 +105,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                 <SignUpPage
                     onClose={onClose}
                     switchToLogin={() => setShowSignUp(false)}
+                    onSignupSuccess={onLoginSuccess}
                 />
             ) : (
                 <Box className="login-page-container">
@@ -99,6 +126,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                         objectFit: 'cover',
                                         opacity: fade ? 1 : 0
                                     }}
+                                    alt="Background"
                                 />
                             </Box>
                         </Fade>
@@ -121,6 +149,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                         objectFit: 'cover',
                                         opacity: fade ? 1 : 0
                                     }}
+                                    alt="Background"
                                 />
                             </Box>
                         </Fade>
@@ -128,7 +157,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
 
                     {/* Right side */}
                     <Box className="right-form-side">
-                        <Paper className="form-paper">
+                        <Paper className="form-paper" elevation={6}>
                             <Box className="close-button-container">
                                 <IconButton
                                     onClick={onClose}
@@ -149,6 +178,12 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                 Sign in to your cooking forum account
                             </Typography>
 
+                            {error && (
+                                <Alert severity="error" sx={{mb: 2}}>
+                                    {error}
+                                </Alert>
+                            )}
+
                             <form onSubmit={handleSubmit}>
                                 <TextField
                                     className="form-field"
@@ -161,6 +196,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                     margin="normal"
                                     required
                                     autoComplete="email"
+                                    disabled={isLoading}
                                 />
                                 <TextField
                                     className="form-field"
@@ -173,6 +209,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                     margin="normal"
                                     required
                                     autoComplete="current-password"
+                                    disabled={isLoading}
                                 />
 
                                 <Box className="forgot-password-link">
@@ -186,8 +223,21 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                                     type="submit"
                                     variant="contained"
                                     size="large"
+                                    disabled={isLoading}
+                                    fullWidth
+                                    sx={{
+                                        height: '48px',
+                                        backgroundColor: '#F59E0B',
+                                        '&:hover': {
+                                            backgroundColor: '#D48A08'
+                                        }
+                                    }}
                                 >
-                                    Sign In
+                                    {isLoading ? (
+                                        <CircularProgress size={24} color="inherit"/>
+                                    ) : (
+                                        'Sign In'
+                                    )}
                                 </Button>
 
                                 <Typography className="form-switch-text">
@@ -204,7 +254,7 @@ const LoginPage: React.FC<{ onClose: () => void }> = ({onClose}) => {
                         </Paper>
                     </Box>
                 </Box>
-            )};
+            )}
         </>
     );
 };

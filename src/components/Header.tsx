@@ -1,17 +1,18 @@
 import React from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
-import {Button} from '@mui/material';
+import { Button } from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
 import AddIcon from '@mui/icons-material/Add';
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
     onLoginClick: () => void;
-    isLoggedIn: boolean; //login status
+    onLogoutClick: () => void;
+    isLoggedIn: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({onLoginClick, isLoggedIn}) => {
+const Header: React.FC<HeaderProps> = ({ onLoginClick, onLogoutClick, isLoggedIn }) => {
     const navigate = useNavigate();
 
     const handleAddRecipeClick = () => {
@@ -67,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, isLoggedIn}) => {
                                 color="inherit"
                                 size="medium"
                                 endIcon={<LoginIcon/>}
-                                onClick={onLoginClick}
+                                onClick={isLoggedIn ? onLogoutClick : onLoginClick}
                                 sx={{
                                     textTransform: 'none',
                                     fontSize: '1rem',
