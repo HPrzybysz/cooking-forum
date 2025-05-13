@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
@@ -55,29 +55,25 @@ const theme = createTheme({
     },
 });
 
-const App: React.FC = () => {
-    const [showLoginPage, setShowLoginPage] = useState(false);
+const HomePageContent = () => {
+    const navigate = useNavigate();
     const placeholderImages: string[] = Array(5).fill('https://placehold.co/150x150');
 
-    const handleLoginClick = () => {
-        setShowLoginPage(true);
+    const handleReadMore = () => {
+        navigate(`/recipe/${sampleRecipe.id}`);
     };
 
-    const handleCloseLogin = () => {
-        setShowLoginPage(false);
-    };
-
-    const HomePage = () => (
+    return (
         <main className="main-content">
             <SearchBar/>
             <section className="featured-recipe">
                 <h2>Recipe of the day</h2>
                 <div className="featured-content">
                     <div className="left">
-                        <img id="dish" src="https://placehold.co/150x150" alt="Dish Image"/>
+                        <img id="dish" src={sampleRecipe.imageUrl} alt="Dish Image"/>
                         <hr/>
-                        <img id="user" src="https://placehold.co/60x60" alt="user"/>
-                        <h6>Jan Kowalski</h6>
+                        <img id="user" src={sampleRecipe.author.avatarUrl} alt="user"/>
+                        <h6>{sampleRecipe.author.name}</h6>
                     </div>
                     <div className="right">
                         <h1 className="featured-recipe__title">{sampleRecipe.title}</h1>
@@ -85,6 +81,12 @@ const App: React.FC = () => {
                         <p id="description">
                             {sampleRecipe.instructions.join(' ').substring(0, 200)}...
                         </p>
+                        <button
+                            className="read-more-button"
+                            onClick={handleReadMore}
+                        >
+                            Read more
+                        </button>
                     </div>
                 </div>
             </section>
@@ -93,6 +95,18 @@ const App: React.FC = () => {
             </section>
         </main>
     );
+};
+
+const App: React.FC = () => {
+    const [showLoginPage, setShowLoginPage] = useState(false);
+
+    const handleLoginClick = () => {
+        setShowLoginPage(true);
+    };
+
+    const handleCloseLogin = () => {
+        setShowLoginPage(false);
+    };
 
     return (
         <Router>
@@ -122,7 +136,7 @@ const App: React.FC = () => {
                         </div>
                     )}
                     <Routes>
-                        <Route path="/" element={<HomePage />} />
+                        <Route path="/" element={<HomePageContent />} />
                         <Route path="/categories" element={<CategoriesPage />} />
                         <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe} />} />
                     </Routes>
