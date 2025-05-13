@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Box,
     TextField,
@@ -29,7 +29,7 @@ interface SignUpForm {
     acceptTerms: boolean;
 }
 
-const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> = ({ onClose, switchToLogin }) => {
+const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> = ({onClose, switchToLogin}) => {
     const [formData, setFormData] = useState<SignUpForm>({
         firstName: '',
         lastName: '',
@@ -55,7 +55,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, checked } = e.target;
+        const {name, value, checked} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: name === 'acceptTerms' ? checked : value
@@ -76,12 +76,12 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
             height: '100%',
             backgroundColor: 'black',
             zIndex: 1199
-        }} />
+        }}/>
     );
 
     return (
         <>
-            <BlackBackgroundLayer />
+            <BlackBackgroundLayer/>
             <Box className="login-page-container">
                 {/* Background Slider */}
                 <Box className="background-slider">
@@ -139,7 +139,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                     }
                                 }}
                             >
-                                <CloseIcon />
+                                <CloseIcon/>
                             </IconButton>
                         </Box>
 
@@ -151,7 +151,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                         </Typography>
 
                         <form onSubmit={handleSubmit}>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Box sx={{display: 'flex', gap: 2}}>
                                 <TextField
                                     className="form-field"
                                     fullWidth
@@ -225,7 +225,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                         I agree to the Terms of Service
                                     </Typography>
                                 }
-                                sx={{ mt: 1 }}
+                                sx={{mt: 1}}
                             />
 
                             <Button
@@ -243,7 +243,7 @@ const SignUpPage: React.FC<{ onClose: () => void, switchToLogin: () => void }> =
                                 <Link
                                     className="switch-link"
                                     onClick={switchToLogin}
-                                    sx={{ cursor: 'pointer' }}
+                                    sx={{cursor: 'pointer'}}
                                 >
                                     Sign in
                                 </Link>

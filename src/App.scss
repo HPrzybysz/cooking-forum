@@ -1,8 +1,8 @@
-@use'./styles/variables' as vars;
+@use './styles/variables' as vars;
 @use 'sass:color';
 
 #root {
-  background-color: rgba(255, 255 ,255, 0.8);
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 10px;
   max-width: 1280px;
   margin: 0 auto;
@@ -10,7 +10,7 @@
   text-align: center;
 }
 
-body{
+body {
   background-image: url("/src/assets/background.png");
   background-repeat: no-repeat;
   background-size: cover;
@@ -23,9 +23,11 @@ body{
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }

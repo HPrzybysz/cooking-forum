@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import React, {useState} from 'react';
+import {BrowserRouter as Router, Routes, Route, useNavigate} from 'react-router-dom';
+import {CssBaseline, ThemeProvider, createTheme} from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 
@@ -8,10 +8,11 @@ import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import PopularSlider from "./components/PopularSlider.tsx";
 import RecipePage from './components/RecipePage';
-import { Recipe } from './components/types.ts';
+import {Recipe} from './components/types.ts';
 import './App.scss';
 import LoginPage from './components/LoginPage';
 import CategoriesPage from './components/CategoriesPage';
+import AddRecipePage from './components/AddRecipePage';
 
 const sampleRecipe: Recipe = {
     id: '1',
@@ -108,12 +109,15 @@ const App: React.FC = () => {
         setShowLoginPage(false);
     };
 
+    const [isLoggedIn, setIsLoggedIn] = useState(false); //Temp for testing
+
+
     return (
         <Router>
             <ThemeProvider theme={theme}>
-                <CssBaseline />
+                <CssBaseline/>
                 <div className="app">
-                    <Header onLoginClick={handleLoginClick} />
+                    <Header onLoginClick={handleLoginClick} isLoggedIn={isLoggedIn} />
                     {showLoginPage && (
                         <div className="login-modal-overlay">
                             <div className="login-modal">
@@ -129,16 +133,17 @@ const App: React.FC = () => {
                                         zIndex: 1001
                                     }}
                                 >
-                                    <CloseIcon />
+                                    <CloseIcon/>
                                 </IconButton>
-                                <LoginPage onClose={handleCloseLogin} />
+                                <LoginPage onClose={handleCloseLogin}/>
                             </div>
                         </div>
                     )}
                     <Routes>
-                        <Route path="/" element={<HomePageContent />} />
-                        <Route path="/categories" element={<CategoriesPage />} />
-                        <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe} />} />
+                        <Route path="/" element={<HomePageContent/>}/>
+                        <Route path="/categories" element={<CategoriesPage/>}/>
+                        <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe}/>}/>
+                        <Route path="/add-recipe" element={<AddRecipePage />} />
                     </Routes>
                 </div>
             </ThemeProvider>

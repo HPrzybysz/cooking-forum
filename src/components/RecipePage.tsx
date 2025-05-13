@@ -13,14 +13,14 @@ import {
     useMediaQuery
 } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { Recipe } from './types.ts';
+import {Recipe} from './types.ts';
 import '../styles/RecipePage.scss';
 
 interface IRecipePageProps {
     recipe: Recipe;
 }
 
-const RecipePage: React.FC<IRecipePageProps> = ({ recipe }) => {
+const RecipePage: React.FC<IRecipePageProps> = ({recipe}) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -38,10 +38,10 @@ const RecipePage: React.FC<IRecipePageProps> = ({ recipe }) => {
                         className="recipe-image"
                     />
 
-                    <Divider className="recipe-divider" />
+                    <Divider className="recipe-divider"/>
 
                     <Box className="prep-time">
-                        <AccessTimeIcon />
+                        <AccessTimeIcon/>
                         <Typography variant="body1">
                             {recipe.prepTime} minutes
                         </Typography>
@@ -57,7 +57,7 @@ const RecipePage: React.FC<IRecipePageProps> = ({ recipe }) => {
                                 <ListItemIcon>
                                     <span className="ingredient-bullet">•</span>
                                 </ListItemIcon>
-                                <ListItemText primary={ingredient} />
+                                <ListItemText primary={ingredient}/>
                             </ListItem>
                         ))}
                     </List>

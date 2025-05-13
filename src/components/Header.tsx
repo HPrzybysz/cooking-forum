@@ -1,17 +1,26 @@
 import React from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
-import { Button } from '@mui/material';
+import {Button} from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
-import { useNavigate } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
+import {useNavigate} from 'react-router-dom';
 
 interface HeaderProps {
     onLoginClick: () => void;
+    isLoggedIn: boolean; //login status
 }
 
-const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
-
+const Header: React.FC<HeaderProps> = ({onLoginClick, isLoggedIn}) => {
     const navigate = useNavigate();
+
+    const handleAddRecipeClick = () => {
+        if (isLoggedIn) {
+            navigate('/add-recipe');
+        } else {
+            onLoginClick();
+        }
+    };
 
     return (
         <header className="header">
@@ -35,6 +44,25 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                         </li>
                         <li>
                             <Button
+                                variant="contained"
+                                color="primary"
+                                size="medium"
+                                startIcon={<AddIcon/>}
+                                onClick={handleAddRecipeClick}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    backgroundColor: '#F59E0B',
+                                    '&:hover': {
+                                        backgroundColor: '#D48A08'
+                                    }
+                                }}
+                            >
+                                Add Recipe
+                            </Button>
+                        </li>
+                        <li>
+                            <Button
                                 variant="outlined"
                                 color="inherit"
                                 size="medium"
@@ -48,7 +76,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
                                     }
                                 }}
                             >
-                                Log in / Sign Up
+                                {isLoggedIn ? 'Logout' : 'Login / Sign Up'}
                             </Button>
                         </li>
                     </ul>

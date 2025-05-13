@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import '../styles/SearchBar.scss';
 
 const SearchBar: React.FC = () => {
@@ -12,7 +12,8 @@ const SearchBar: React.FC = () => {
 
     return (
         <form className="search-bar" onSubmit={handleSearch}>
-            <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
+            <input type="text" placeholder="Search..." value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}/>
             <button type="submit" className="search-button">
                 Search
             </button>

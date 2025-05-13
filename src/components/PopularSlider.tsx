@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import '../styles/PopularSlider.scss';
 import RecipeCard from "./RecipeCard..tsx";
 
@@ -7,7 +7,7 @@ interface RecipeSliderProps {
     images: string[];
 }
 
-const RecipeSlider: React.FC<RecipeSliderProps> = ({ images }) => {
+const RecipeSlider: React.FC<RecipeSliderProps> = ({images}) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const sliderRef = useRef<HTMLDivElement>(null);
@@ -65,7 +65,7 @@ const RecipeSlider: React.FC<RecipeSliderProps> = ({ images }) => {
                 <div
                     className="recipe-slider"
                     ref={sliderRef}
-                    style={{ transform: `translateX(${translateX}%)` }}
+                    style={{transform: `translateX(${translateX}%)`}}
                 >
                     {duplicatedImages.map((img, index) => (
                         <RecipeCard

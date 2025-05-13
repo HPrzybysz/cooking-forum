@@ -19,40 +19,40 @@
     margin-bottom: variables.$spacing-unit;
   }
 
-  .featured-content{
+  .featured-content {
     display: flex;
 
-    hr{
+    hr {
       color: lightgray;
     }
 
-    img{
+    img {
       width: 100%;
       object-fit: cover;
     }
 
-    .left{
+    .left {
       width: 25%;
 
-      #dish{
+      #dish {
         width: 50%;
         height: 150px;
       }
 
-      #user{
+      #user {
         width: 20%;
         height: 60px;
         border-radius: 50%;
       }
 
-      h6{
+      h6 {
         margin: 0.3em;
         letter-spacing: 0.05em;
       }
 
     }
 
-    .right{
+    .right {
       width: 75%;
       margin-left: variables.$spacing-unit;
       padding: variables.$spacing-unit;
