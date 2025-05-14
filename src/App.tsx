@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {BrowserRouter as Router, Routes, Route, useNavigate} from 'react-router-dom';
 import {CssBaseline, ThemeProvider, createTheme} from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-import IconButton from '@mui/material/IconButton';
+import {IconButton} from '@mui/material';
 
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
@@ -13,6 +13,8 @@ import './App.scss';
 import LoginPage from './components/LoginPage';
 import CategoriesPage from './components/CategoriesPage';
 import AddRecipePage from './components/AddRecipePage';
+import UserAccountPage from './components/UserAccountPage';
+import FavoritesPage from './components/FavoritesPage';
 
 const sampleRecipe: Recipe = {
     id: '1',
@@ -119,8 +121,13 @@ const App: React.FC = () => {
                 <div className="app">
                     <Header
                         onLoginClick={handleLoginClick}
-                        onLogoutClick={() => setIsLoggedIn(true)}
+                        onLogoutClick={() => setIsLoggedIn(false)}
                         isLoggedIn={isLoggedIn}
+                        user={{
+                            name: "Jan Papież",
+                            email: "janpapuez@watican.com",
+                            avatarUrl: "https://www.radiowarszawa.com.pl/wp-content/uploads/2016/10/JP2.jpg"
+                        }}
                     />
                     {showLoginPage && (
                         <div className="login-modal-overlay">
@@ -151,6 +158,8 @@ const App: React.FC = () => {
                         <Route path="/categories" element={<CategoriesPage/>}/>
                         <Route path="/recipe/:id" element={<RecipePage recipe={sampleRecipe}/>}/>
                         <Route path="/add-recipe" element={<AddRecipePage/>}/>
+                        <Route path="/account" element={<UserAccountPage/>}/>
+                        <Route path="/favorites" element={<FavoritesPage/>}/>
                     </Routes>
                 </div>
             </ThemeProvider>
