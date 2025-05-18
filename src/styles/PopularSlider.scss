@@ -11,7 +11,7 @@
     font-weight: normal;
     color: variables.$secondary;
     background-color: variables.$primary;
-    padding: variables.$spacing-unit/2;
+    padding: calc(1rem / 2);
   }
 
   .slider-container {
@@ -61,7 +61,7 @@
 
   .recipe-card {
     flex: 0 0 calc(100% / 3 - #{variables.$spacing-unit});
-    margin: 0 variables.$spacing-unit/2;
+    margin: 0 calc(1rem / 2);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
@@ -78,7 +78,7 @@
     }
 
     h3 {
-      padding: variables.$spacing-unit/2;
+      padding: calc(1rem / 2);
       text-align: center;
       color: variables.$secondary;
       background: white;
