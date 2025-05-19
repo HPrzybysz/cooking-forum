@@ -1,0 +1,118 @@
+@use "variables" as *;
+
+.user-account-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .page-title {
+    margin-bottom: 2rem;
+    color: $primary;
+    text-align: center;
+  }
+
+  .profile-section,
+  .password-section,
+  .recipes-section {
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+
+    .section-title {
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+  }
+
+  .profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+
+    .avatar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .user-avatar {
+        border: 3px solid $primary;
+      }
+    }
+
+    .profile-info {
+      width: 100%;
+      text-align: center;
+
+      .user-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .user-email {
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+
+  .recipes-section {
+    .recipes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+
+      .recipe-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+
+        &:hover {
+          transform: translateY(-5px);
+        }
+
+        img {
+          width: 100%;
+          height: 150px;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 0.5rem;
+        }
+
+        .MuiTypography-root {
+          text-align: center;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  @media (min-width: 768px) {
+    .profile-section {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+
+      .profile-info {
+        text-align: left;
+
+        .user-email {
+          justify-content: flex-start;
+        }
+      }
+    }
+
+    .action-buttons {
+      justify-content: flex-start;
+    }
+  }
+}

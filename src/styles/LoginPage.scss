@@ -1,0 +1,189 @@
+.login-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1200;
+  overflow: hidden;
+}
+
+.login-page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  z-index: 1200;
+
+  .background-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+
+    .background-image {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: opacity 1s ease-in-out;
+      will-change: opacity;
+    }
+  }
+
+  .left-image-side {
+    width: 50%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: none;
+
+    @media (min-width: 900px) {
+      display: block;
+    }
+
+    .slider-image-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+      .slider-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: opacity 1s ease-in-out;
+        will-change: opacity;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: rgba(255, 255, 255, 0.3);
+      z-index: 2;
+    }
+  }
+
+  .right-form-side {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+
+    @media (min-width: 900px) {
+      width: 50%;
+    }
+
+    .form-paper {
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+      .close-button-container {
+        display: flex;
+        justify-content: flex-end;
+
+        .MuiIconButton-root {
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+          }
+        }
+      }
+
+      .form-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-subtitle {
+        color: #6B7280;
+        margin-bottom: 2rem;
+      }
+
+      .form-field {
+        margin-bottom: 1.5rem;
+      }
+
+      .forgot-password-link {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+      }
+
+      .submit-button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: none;
+      }
+
+      .form-switch-text {
+        text-align: center;
+        margin-top: 1rem;
+
+        .switch-link {
+          font-weight: 500;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+.form-field-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+
+  .form-field {
+    flex: 1;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.MuiFormControlLabel-root {
+  align-items: flex-start;
+  margin-top: 0.5rem;
+
+  .MuiCheckbox-root {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .form-paper {
+    padding: 1.5rem;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+}
