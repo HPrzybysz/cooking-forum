@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const categoryRoutes = require('./routes/categories');
 const ingredientRoutes = require('./routes/ingredients');
+const recipeRoutes = require('./routes/recipes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/ingredients', ingredientRoutes);
+app.use('/api/recipes', recipeRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

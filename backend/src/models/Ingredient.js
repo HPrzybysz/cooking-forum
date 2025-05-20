@@ -9,7 +9,7 @@ class Ingredient {
         return rows;
     }
 
-    static async create(recipeId, { name, amount }) {
+    static async create(recipeId, {name, amount}) {
         const [result] = await db.execute(
             'INSERT INTO ingredients (recipe_id, name, amount) VALUES (?, ?, ?)',
             [recipeId, name, amount]
@@ -17,7 +17,7 @@ class Ingredient {
         return result.insertId;
     }
 
-    static async update(id, { name, amount }) {
+    static async update(id, {name, amount}) {
         const [result] = await db.execute(
             'UPDATE ingredients SET name = ?, amount = ? WHERE id = ?',
             [name, amount, id]
