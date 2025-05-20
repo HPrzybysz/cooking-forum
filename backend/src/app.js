@@ -1,37 +1,28 @@
 require('dotenv').config();
 const express = require('express');
+const bodyParser = require('body-parser');
 const cors = require('cors');
-const fileUpload = require('express-fileupload');
-const sequelize = require('./config/db');
-const errorHandler = require('./middlewares/errorMiddleware');
-
-const authRoutes = require('./routes/authRoutes');
-const recipeRoutes = require('./routes/recipeRoutes');
-const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
+// Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload());
-app.use('/uploads', express.static('uploads'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
-// app.use('/api/auth', authRoutes);
-app.use('/api/recipes', recipeRoutes);
-// app.use('/api/users', userRoutes);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
-// app.use(errorHandler);
+// Error handling
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({error: 'Something went wrong!'});
+});
 
-sequelize.sync({ alter: true })
-    .then(() => {
-        const PORT = process.env.PORT || 5000;
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-    })
-    .catch(err => {
-        console.error('Database connection error:', err);
-    });
-
-module.exports = app;
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
