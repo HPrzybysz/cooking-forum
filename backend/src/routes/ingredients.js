@@ -7,9 +7,9 @@ router.get('/recipes/:recipeId/ingredients', ingredientsController.getIngredient
 
 router.post('/recipes/:recipeId/ingredients', auth, ingredientsController.createIngredient);
 
-router.put('/ingredients/:id', auth, ingredientsController.updateIngredient);
+router.put('/:id', auth, ingredientsController.updateIngredient);
 
-router.delete('/ingredients/:id', auth, ingredientsController.deleteIngredient);
+router.delete('/:id', auth, ingredientsController.deleteIngredient);
 
 router.delete('/recipes/:recipeId/ingredients', auth, ingredientsController.deleteAllIngredients);
 

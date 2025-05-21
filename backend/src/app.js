@@ -7,6 +7,8 @@ const userRoutes = require('./routes/users');
 const categoryRoutes = require('./routes/categories');
 const ingredientRoutes = require('./routes/ingredients');
 const recipeRoutes = require('./routes/recipes');
+const statsRoutes = require('./routes/recipeStatistics');
+const stepsRoutes = require('./routes/preparationSteps');
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api', statsRoutes);
+app.use('/api', stepsRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -30,5 +34,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server probably running on port ${PORT}`);
 });
