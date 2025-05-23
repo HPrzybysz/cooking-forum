@@ -10,6 +10,8 @@ const recipeRoutes = require('./routes/recipes');
 const statsRoutes = require('./routes/recipeStatistics');
 const stepsRoutes = require('./routes/preparationSteps');
 const tagRoutes = require('./routes/tags');
+const recipeImagesRoutes = require('./routes/recipeImages');
+const recipeRatingsRoutes = require('./routes/recipeRatings');
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api', statsRoutes);
 app.use('/api', stepsRoutes);
 app.use('/api/tags', tagRoutes);
+app.use('/api', recipeImagesRoutes);
+app.use('/api', recipeRatingsRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

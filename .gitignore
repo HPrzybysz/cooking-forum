@@ -25,3 +25,4 @@ dist-ssr
 /src/assets/page.jpg
 /backend/database.txt
 /backend/db-schema.png
+/backend/token.txt
