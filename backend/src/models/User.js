@@ -28,6 +28,14 @@ class User {
         return generateToken({id: userId});
     }
 
+    static async getProfile(userId) {
+        const [rows] = await db.execute(
+            'SELECT id, first_name, last_name, email, avatar_url FROM users WHERE id = ?',
+            [userId]
+        );
+        return rows[0];
+    }
+
     static async updateProfile(userId, {firstName, lastName, email, avatarData}) {
         if (avatarData) {
             const [result] = await db.execute(
@@ -42,6 +50,14 @@ class User {
             );
             return result;
         }
+    }
+
+    static async updatePassword(userId, newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.execute(
+            'UPDATE users SET password_hash = ? WHERE id = ?',
+            [hashedPassword, userId]
+        );
     }
 }
 
