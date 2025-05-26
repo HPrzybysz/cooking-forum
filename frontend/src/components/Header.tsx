@@ -1,29 +1,19 @@
 import React from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
-import {Button, Menu, MenuItem, Avatar} from '@mui/material';
-
-import {useNavigate} from 'react-router-dom';
+import { Button, Menu, MenuItem, Avatar } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import AddIcon from "@mui/icons-material/Add";
 import LoginIcon from '@mui/icons-material/LogIn';
+import { useAuth } from '../context/AuthContext';
 
-interface HeaderProps {
-    onLoginClick: () => void;
-    onLogoutClick: () => void;
-    isLoggedIn: boolean;
-    user?: {
-        name: string;
-        email: string;
-        avatarUrl?: string;
-    };
-}
-
-const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn, user}) => {
+const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const { user, logout, loading } = useAuth();
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -34,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
     };
 
     const handleAddRecipeClick = () => {
-        if (isLoggedIn) {
+        if (user) {
             navigate('/add-recipe');
         } else {
             onLoginClick();
@@ -46,11 +36,16 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
         handleMenuClose();
     };
 
+    const handleLogout = () => {
+        logout();
+        handleMenuClose();
+    };
+
     return (
         <header className="header">
             <div className="container header__container">
                 <div className="header__logo">
-                    <img src={logo} alt="Cooking Forum Logo"/>
+                    <img src={logo} alt="Cooking Forum Logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
                 </div>
                 <nav className="header__nav">
                     <ul>
@@ -71,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                 variant="contained"
                                 color="primary"
                                 size="medium"
-                                startIcon={<AddIcon/>}
+                                startIcon={<AddIcon />}
                                 onClick={handleAddRecipeClick}
                                 sx={{
                                     textTransform: 'none',
@@ -81,11 +76,12 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                         backgroundColor: '#D48A08'
                                     }
                                 }}
+                                disabled={loading}
                             >
                                 Add Recipe
                             </Button>
                         </li>
-                        {isLoggedIn ? (
+                        {user ? (
                             <li>
                                 <Button
                                     variant="outlined"
@@ -93,10 +89,10 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                     size="medium"
                                     startIcon={
                                         <Avatar
-                                            src={user?.avatarUrl}
-                                            sx={{width: 24, height: 24}}
+                                            src={user.avatarUrl}
+                                            sx={{ width: 24, height: 24 }}
                                         >
-                                            {user?.name.charAt(0)}
+                                            {user.firstName?.charAt(0)}
                                         </Avatar>
                                     }
                                     onClick={handleMenuOpen}
@@ -107,8 +103,9 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                             color: '#F59E0B'
                                         }
                                     }}
+                                    disabled={loading}
                                 >
-                                    {user?.name || 'My Account'}
+                                    {user.firstName || 'My Account'}
                                 </Button>
                                 <Menu
                                     anchorEl={anchorEl}
@@ -116,15 +113,15 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                     onClose={handleMenuClose}
                                 >
                                     <MenuItem onClick={() => handleMenuItemClick('/account')}>
-                                        <AccountCircleIcon sx={{mr: 1}}/>
+                                        <AccountCircleIcon sx={{ mr: 1 }} />
                                         My Account
                                     </MenuItem>
                                     <MenuItem onClick={() => handleMenuItemClick('/favorites')}>
-                                        <FavoriteIcon sx={{mr: 1}}/>
+                                        <FavoriteIcon sx={{ mr: 1 }} />
                                         My Favorites
                                     </MenuItem>
-                                    <MenuItem onClick={onLogoutClick}>
-                                        <ExitToAppIcon sx={{mr: 1}}/>
+                                    <MenuItem onClick={handleLogout}>
+                                        <ExitToAppIcon sx={{ mr: 1 }} />
                                         Logout
                                     </MenuItem>
                                 </Menu>
@@ -135,8 +132,9 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                     variant="outlined"
                                     color="inherit"
                                     size="medium"
-                                    endIcon={<LoginIcon/>}
+                                    endIcon={<LoginIcon />}
                                     onClick={onLoginClick}
+                                    disabled={loading}
                                     sx={{
                                         textTransform: 'none',
                                         fontSize: '1rem',
