@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import api from '../api';
 
 interface User {
@@ -23,24 +23,28 @@ interface AuthContextType {
     logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>(null!);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
 
     useEffect(() => {
         const initializeAuth = async () => {
             try {
                 const storedToken = localStorage.getItem('token');
                 if (storedToken) {
+                    api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
                     const response = await api.get('/api/users/me');
                     setUser(response.data);
                     setToken(storedToken);
                 }
             } catch (error) {
                 localStorage.removeItem('token');
+                delete api.defaults.headers.common['Authorization'];
             } finally {
                 setIsLoading(false);
             }
@@ -52,10 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const response = await api.post('/api/auth/login', { email, password });
-            const { user, token } = response.data;
+            const response = await api.post('/api/auth/login', {email, password});
+            const {user, token} = response.data;
 
             localStorage.setItem('token', token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
             setUser(user);
             setToken(token);
         } catch (error: any) {
@@ -79,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email,
                 password,
             });
-            const { user, token } = response.data;
+            const {user, token} = response.data;
 
             localStorage.setItem('token', token);
             setUser(user);
@@ -103,11 +109,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const value = { user, token, isLoading, login, register, logout };
+    const value = {user, token, isLoading, login, register, logout};
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-export function useAuth() {
-    return useContext(AuthContext);
-}
+export const useAuth = (): AuthContextType => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};

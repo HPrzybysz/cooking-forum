@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
@@ -51,7 +51,7 @@ const App: React.FC = () => {
                         />
                     } />
                     <Route path="/" element={
-                        <ProtectedRoute>
+                        <ProtectedRoute isPublic>
                             <HomePage />
                         </ProtectedRoute>
                     } />

@@ -1,4 +1,5 @@
-const {verifyToken} = require('../utils/encryption');
+const { verifyToken } = require('../utils/encryption');
+const logger = require('../utils/logger');
 
 const auth = async (req, res, next) => {
     try {
@@ -12,7 +13,11 @@ const auth = async (req, res, next) => {
         req.userId = decoded.id;
         next();
     } catch (error) {
-        res.status(401).send({error: 'Please authenticate'});
+        logger.error('Authentication failed', {
+            error: error.message,
+            stack: error.stack
+        });
+        res.status(401).send({ error: 'Please authenticate' });
     }
 };
 
