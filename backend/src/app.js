@@ -16,8 +16,20 @@ const favoritesRoutes = require('./routes/favorites');
 
 const app = express();
 
+// CORS config
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
+app.options('*', cors(corsOptions));
+
 // Middleware
-app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -33,15 +45,12 @@ app.use('/api/tags', tagRoutes);
 app.use('/api', recipeImagesRoutes);
 app.use('/api', recipeRatingsRoutes);
 app.use('/api', favoritesRoutes);
+app.use('/uploads', express.static('uploads'));
+
 
 const errorHandler = require('./middlewares/errorHandler');
 app.use(errorHandler);
 
-// Error handling
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({error: 'Something went wrong!'});
-// });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

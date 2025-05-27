@@ -1,19 +1,19 @@
 import React from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
-import { Button, Menu, MenuItem, Avatar } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import {Button, Menu, MenuItem, Avatar} from '@mui/material';
+import {useNavigate} from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import AddIcon from "@mui/icons-material/Add";
 import LoginIcon from '@mui/icons-material/LogIn';
-import { useAuth } from '../context/AuthContext';
+import {useAuth} from '../context/AuthContext';
 
-const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
+const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const { user, logout, isLoading } = useAuth();
+    const {user, logout, isLoading} = useAuth();
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -49,7 +49,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
         <header className="header">
             <div className="container header__container">
                 <div className="header__logo">
-                    <img src={logo} alt="Cooking Forum Logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+                    <img src={logo} alt="Cooking Forum Logo" onClick={() => navigate('/')} style={{cursor: 'pointer'}}/>
                 </div>
                 <nav className="header__nav">
                     <ul>
@@ -70,7 +70,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                 variant="contained"
                                 color="primary"
                                 size="medium"
-                                startIcon={<AddIcon />}
+                                startIcon={<AddIcon/>}
                                 onClick={handleAddRecipeClick}
                                 sx={{
                                     textTransform: 'none',
@@ -94,7 +94,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                     startIcon={
                                         <Avatar
                                             src={user.avatarUrl}
-                                            sx={{ width: 24, height: 24 }}
+                                            sx={{width: 24, height: 24}}
                                         >
                                             {user.firstName?.charAt(0)}
                                         </Avatar>
@@ -117,15 +117,15 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                     onClose={handleMenuClose}
                                 >
                                     <MenuItem onClick={() => handleMenuItemClick('/account')}>
-                                        <AccountCircleIcon sx={{ mr: 1 }} />
+                                        <AccountCircleIcon sx={{mr: 1}}/>
                                         My Account
                                     </MenuItem>
                                     <MenuItem onClick={() => handleMenuItemClick('/favorites')}>
-                                        <FavoriteIcon sx={{ mr: 1 }} />
+                                        <FavoriteIcon sx={{mr: 1}}/>
                                         My Favorites
                                     </MenuItem>
                                     <MenuItem onClick={handleLogout}>
-                                        <ExitToAppIcon sx={{ mr: 1 }} />
+                                        <ExitToAppIcon sx={{mr: 1}}/>
                                         Logout
                                     </MenuItem>
                                 </Menu>
@@ -136,7 +136,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                     variant="outlined"
                                     color="inherit"
                                     size="medium"
-                                    endIcon={<LoginIcon />}
+                                    endIcon={<LoginIcon/>}
                                     onClick={onLoginClick}
                                     disabled={isLoading}
                                     sx={{

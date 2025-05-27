@@ -60,6 +60,9 @@ exports.login = async (req, res) => {
         );
 
         logger.info(`User logged in: ${email}`);
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
         res.json({
             user: {
                 id: user.id,
@@ -68,15 +71,12 @@ exports.login = async (req, res) => {
                 email: user.email,
                 avatarUrl: user.avatar_url
             },
-            token,
-            refreshToken
+            token
         });
     } catch (error) {
-        logger.error('Login failed', {
-            error: error.message,
-            stack: error.stack
-        });
-        res.status(500).json({error: 'Login failed'});
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.status(401).json({error: 'Invalid credentials'});
     }
 };
 
@@ -201,13 +201,12 @@ exports.logout = async (req, res) => {
             await RefreshToken.deleteAllForUser(req.userId);
             logger.info(`User logged out: ${req.userId}`);
         }
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.json({message: 'Logged out successfully'});
     } catch (error) {
-        logger.error('Logout failed', {
-            error: error.message,
-            stack: error.stack,
-            userId: req.userId
-        });
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.status(500).json({error: 'Logout failed'});
     }
 };
@@ -216,10 +215,10 @@ exports.getCurrentUser = async (req, res) => {
     try {
         const user = await User.getProfile(req.userId);
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({error: 'User not found'});
         }
-        res.json({ user });
+        res.json({user});
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching user' });
+        res.status(500).json({error: 'Error fetching user'});
     }
 };

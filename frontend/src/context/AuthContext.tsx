@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import api from '../api';
 
-interface User {
+export interface User {
     id: number;
     firstName: string;
     lastName: string;
@@ -21,6 +21,13 @@ interface AuthContextType {
         password: string
     ) => Promise<void>;
     logout: () => Promise<void>;
+    setUser: (user: (prev: (User | null)) => (null | {
+        firstName: string;
+        lastName: string;
+        avatarUrl: any;
+        id: number;
+        email: string
+    })) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const transformUser = (backendUser: any): User => ({
+        id: backendUser.id,
+        firstName: backendUser.first_name,
+        lastName: backendUser.last_name,
+        email: backendUser.email,
+        avatarUrl: backendUser.avatar_url
+    });
+
 
     useEffect(() => {
         const initializeAuth = async () => {
@@ -37,9 +52,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
                 const storedToken = localStorage.getItem('token');
                 if (storedToken) {
                     api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-
                     const response = await api.get('/api/users/me');
-                    setUser(response.data);
+                    setUser(transformUser(response.data));
+
+                    setUser({
+                        id: response.data.id,
+                        firstName: response.data.first_name,
+                        lastName: response.data.last_name,
+                        email: response.data.email,
+                        avatarUrl: response.data.avatar_url
+                    });
                     setToken(storedToken);
                 }
             } catch (error) {
@@ -57,7 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         setIsLoading(true);
         try {
             const response = await api.post('/api/auth/login', {email, password});
-            const {user, token} = response.data;
+            const {user: backendUser, token} = response.data;
+            setUser(transformUser(backendUser));
 
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -99,22 +122,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
 
     const logout = async () => {
         try {
-            await api.post('/api/auth/logout');
+            await api.post('/api/auth/logout', {}, {
+                withCredentials: true
+            });
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
             localStorage.removeItem('token');
+            delete api.defaults.headers.common['Authorization'];
             setUser(null);
             setToken(null);
         }
     };
 
-    const value = {user, token, isLoading, login, register, logout};
+    const value = {user, token, isLoading, login, register, logout, setUser};
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
