@@ -23,23 +23,35 @@ const backgroundImages = [
     'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&auto=format&fit=crop',
 ];
 
+interface SignUpForm {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    acceptTerms: boolean;
+}
+
 interface SignUpPageProps {
     onClose: () => void;
     switchToLogin: () => void;
+    onSignupSuccess?: () => void;
 }
 
-const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [acceptTerms, setAcceptTerms] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignupSuccess}) => {
+    const [formData, setFormData] = useState<SignUpForm>({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        acceptTerms: false
+    });
+    const [errors, setErrors] = useState<Partial<SignUpForm>>({});
+    const {register, isLoading} = useAuth();
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
-    const {register, loading} = useAuth();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -54,40 +66,68 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
     }, []);
 
     const validateForm = (): boolean => {
-        const newErrors: Record<string, string> = {};
+        const newErrors: Partial<SignUpForm> = {};
 
-        if (!firstName.trim()) newErrors.firstName = 'First name is required';
-        if (!lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (!email.trim()) {
+        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+        if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
-        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
             newErrors.email = 'Email is invalid';
         }
-        if (!password) {
+        if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
+        } else if (formData.password.length < 6) {
             newErrors.password = 'Password must be at least 6 characters';
         }
-        if (password !== confirmPassword) {
+        if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
-        if (!acceptTerms) {
-            newErrors.acceptTerms = 'You must accept the terms';
+        if (!formData.acceptTerms) {
+            newErrors.acceptTerms = true;
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await register(firstName, lastName, email, password, confirmPassword);
-            onClose();
-        } catch (error: any) {
-            setSubmitError(error.message || 'Signup failed. Please try again.');
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {name, value, checked} = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'acceptTerms' ? checked : value
+        }));
+
+        // Clear error when user starts typing
+        if (errors[name as keyof SignUpForm]) {
+            setErrors(prev => ({...prev, [name]: undefined}));
         }
     };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitError(null);
+
+        if (!validateForm()) return;
+
+        try {
+            await register(
+                formData.firstName,
+                formData.lastName,
+                formData.email,
+                formData.password
+            );
+            onSignupSuccess?.();
+            onClose();
+        } catch (error) {
+            setSubmitError(
+                error instanceof Error
+                    ? error.message
+                    : 'Signup failed. Please try again.'
+            );
+        }
+    };
+
 
     const BlackBackgroundLayer = () => (
         <Box sx={{
@@ -107,6 +147,29 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
             <Box className="login-page-container">
                 {/* Background Slider */}
                 <Box className="background-slider">
+                    <Fade in={fade} timeout={500}>
+                        <Box sx={{
+                            position: 'absolute',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: 'black'
+                        }}>
+                            <img
+                                src={backgroundImages[currentImageIndex]}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    opacity: fade ? 1 : 0
+                                }}
+                                alt="Background"
+                            />
+                        </Box>
+                    </Fade>
+                </Box>
+
+                {/* Left Side */}
+                <Box className="left-image-side">
                     <Fade in={fade} timeout={500}>
                         <Box sx={{
                             position: 'absolute',
@@ -152,15 +215,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                         </Typography>
 
                         {submitError && (
-                            <Alert
-                                severity="error"
-                                sx={{
-                                    mb: 2,
-                                    '& .MuiAlert-message': {
-                                        width: '100%'
-                                    }
-                                }}
-                            >
+                            <Alert severity="error" sx={{mb: 2}}>
                                 {submitError}
                             </Alert>
                         )}
@@ -172,26 +227,26 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                     fullWidth
                                     label="First Name"
                                     name="firstName"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
+                                    value={formData.firstName}
+                                    onChange={handleInputChange}
                                     margin="normal"
                                     required
                                     error={!!errors.firstName}
                                     helperText={errors.firstName}
-                                    disabled={loading}
+                                    disabled={isLoading}
                                 />
                                 <TextField
                                     className="form-field"
                                     fullWidth
                                     label="Last Name"
                                     name="lastName"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
+                                    value={formData.lastName}
+                                    onChange={handleInputChange}
                                     margin="normal"
                                     required
                                     error={!!errors.lastName}
                                     helperText={errors.lastName}
-                                    disabled={loading}
+                                    disabled={isLoading}
                                 />
                             </Box>
 
@@ -201,13 +256,13 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                 label="Email Address"
                                 name="email"
                                 type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={formData.email}
+                                onChange={handleInputChange}
                                 margin="normal"
                                 required
                                 error={!!errors.email}
                                 helperText={errors.email}
-                                disabled={loading}
+                                disabled={isLoading}
                             />
 
                             <TextField
@@ -216,13 +271,13 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                 label="Password"
                                 name="password"
                                 type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                value={formData.password}
+                                onChange={handleInputChange}
                                 margin="normal"
                                 required
                                 error={!!errors.password}
                                 helperText={errors.password}
-                                disabled={loading}
+                                disabled={isLoading}
                             />
 
                             <TextField
@@ -231,24 +286,24 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                 label="Confirm Password"
                                 name="confirmPassword"
                                 type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
                                 margin="normal"
                                 required
                                 error={!!errors.confirmPassword}
                                 helperText={errors.confirmPassword}
-                                disabled={loading}
+                                disabled={isLoading}
                             />
 
                             <FormControlLabel
                                 control={
                                     <Checkbox
                                         name="acceptTerms"
-                                        checked={acceptTerms}
-                                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                                        checked={formData.acceptTerms}
+                                        onChange={handleInputChange}
                                         required
                                         color="primary"
-                                        disabled={loading}
+                                        disabled={isLoading}
                                     />
                                 }
                                 label={
@@ -265,7 +320,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                 variant="contained"
                                 size="large"
                                 fullWidth
-                                disabled={loading}
+                                disabled={isLoading}
                                 sx={{
                                     height: '48px',
                                     backgroundColor: '#F59E0B',
@@ -274,7 +329,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin}) => {
                                     }
                                 }}
                             >
-                                {loading ? (
+                                {isLoading ? (
                                     <CircularProgress size={24} color="inherit"/>
                                 ) : (
                                     'Sign Up'

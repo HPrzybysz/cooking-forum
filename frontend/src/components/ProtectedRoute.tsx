@@ -1,23 +1,23 @@
 import React from 'react';
-import {Navigate, Outlet} from 'react-router-dom';
+import {Navigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
 
 interface ProtectedRouteProps {
-    redirectPath?: string;
-    children?: React.ReactNode;
+    children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-                                                           redirectPath = '/login',
-                                                           children
-                                                       }) => {
-    const {user} = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({children}) => {
+    const {user, isLoading} = useAuth();
 
-    if (!user) {
-        return <Navigate to={redirectPath} replace/>;
+    if (isLoading) {
+        return <div>Loading...</div>;
     }
 
-    return children ? <>{children}</> : <Outlet/>;
+    if (!user) {
+        return <Navigate to="/" replace/>;
+    }
+
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;

@@ -5,9 +5,9 @@ const multer = require('multer');
 const usersController = require('../controllers/users');
 
 const upload = multer({
-    storage: multer.memoryStorage(), // Store in memory for DB storage
+    storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 5 * 1024 * 1024
     }
 });
 

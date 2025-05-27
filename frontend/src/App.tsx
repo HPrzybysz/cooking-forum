@@ -1,76 +1,63 @@
-import React, {useState} from 'react';
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
-import {CssBaseline, ThemeProvider, createTheme, CircularProgress} from '@mui/material';
-import Header from './components/Header';
-import RecipePage from './components/RecipePage';
-import './App.scss';
-import LoginPage from './components/LoginPage';
-import CategoriesPage from './components/CategoriesPage';
-import AddRecipePage from './components/AddRecipePage';
-import UserAccountPage from './components/UserAccountPage';
-import FavoritesPage from './components/FavoritesPage';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import HomePage from './components/HomePage';
-import {AuthProvider, useAuth} from './context/AuthContext';
+import LoginPage from './components/LoginPage';
+import SignUpPage from './components/SignupPage';
 import ProtectedRoute from './components/ProtectedRoute';
-
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#F59E0B',
-        },
-        background: {
-            default: '#FFFFFF',
-            paper: '#FFFFFF',
-        },
-    },
-});
+import Header from './components/Header';
 
 const App: React.FC = () => {
-    const [showLoginPage, setShowLoginPage] = useState(false);
-    const {user, loading} = useAuth()
-
-    if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh'
-            }}>
-                <CircularProgress size={60}/>
-            </div>
-        );
-    }
-
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
     return (
-        <Router>
-            <ThemeProvider theme={theme}>
-                <CssBaseline/>
-                <AuthProvider>
-                    <div className="app">
-                        <Header onLoginClick={() => setShowLoginPage(true)}/>
+        <AuthProvider>
+            <Router>
+                <Header
+                    onLoginClick={() => {
+                        setAuthMode('login');
+                        setShowAuthModal(true);
+                    }}
+                />
 
-                        {showLoginPage && (
-                            <LoginPage onClose={() => setShowLoginPage(false)}/>
-                        )}
+                {showAuthModal && (
+                    authMode === 'login' ? (
+                        <LoginPage
+                            onClose={() => setShowAuthModal(false)}
+                            onLoginSuccess={() => setShowAuthModal(false)}
+                        />
+                    ) : (
+                        <SignUpPage
+                            onClose={() => setShowAuthModal(false)}
+                            switchToLogin={() => setAuthMode('login')}
+                            onSignupSuccess={() => setShowAuthModal(false)}
+                        />
+                    )
+                )}
 
-                        <Routes>
-                            <Route path="/" element={<HomePage/>}/>
-                            <Route path="/categories" element={<CategoriesPage/>}/>
-                            <Route path="/recipe/:id" element={<RecipePage/>}/>
-
-                            {/* Protected routes */}
-                            <Route element={<ProtectedRoute/>}>
-                                <Route path="/add-recipe" element={<AddRecipePage/>}/>
-                                <Route path="/account" element={<UserAccountPage/>}/>
-                                <Route path="/favorites" element={<FavoritesPage/>}/>
-                            </Route>
-                        </Routes>
-                    </div>
-                </AuthProvider>
-            </ThemeProvider>
-        </Router>
+                <Routes>
+                    <Route path="/login" element={
+                        <LoginPage
+                            onClose={() => {}}
+                            onLoginSuccess={() => {}}
+                        />
+                    } />
+                    <Route path="/signup" element={
+                        <SignUpPage
+                            onClose={() => {}}
+                            switchToLogin={() => {}}
+                            onSignupSuccess={() => {}}
+                        />
+                    } />
+                    <Route path="/" element={
+                        <ProtectedRoute>
+                            <HomePage />
+                        </ProtectedRoute>
+                    } />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 };
 

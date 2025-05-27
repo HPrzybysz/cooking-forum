@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const { user, logout, loading } = useAuth();
+    const { user, logout, isLoading } = useAuth();
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -36,9 +36,13 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
         handleMenuClose();
     };
 
-    const handleLogout = () => {
-        logout();
-        handleMenuClose();
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
     };
 
     return (
@@ -76,7 +80,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                         backgroundColor: '#D48A08'
                                     }
                                 }}
-                                disabled={loading}
+                                disabled={isLoading}
                             >
                                 Add Recipe
                             </Button>
@@ -103,7 +107,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                             color: '#F59E0B'
                                         }
                                     }}
-                                    disabled={loading}
+                                    disabled={isLoading}
                                 >
                                     {user.firstName || 'My Account'}
                                 </Button>
@@ -134,7 +138,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
                                     size="medium"
                                     endIcon={<LoginIcon />}
                                     onClick={onLoginClick}
-                                    disabled={loading}
+                                    disabled={isLoading}
                                     sx={{
                                         textTransform: 'none',
                                         fontSize: '1rem',
