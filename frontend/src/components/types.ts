@@ -1,8 +1,3 @@
-export interface RecipeCardProps {
-    title: string;
-    image: string;
-}
-
 export interface Recipe {
     id: string;
     title: string;

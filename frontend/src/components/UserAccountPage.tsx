@@ -55,38 +55,46 @@ const UserAccountPage: React.FC = () => {
         confirmPassword: ''
     });
 
-    const getAvatarUrl = (url?: string | null): string | undefined => {
+    const getFullAvatarUrl = (url: unknown): string | undefined => {
         if (!url) return undefined;
         const urlString = String(url);
-        return urlString.startsWith('http')
-            ? urlString
-            : `${process.env.VITE_API_URL || 'http://localhost:5000'}${urlString}`;
+
+        if (!urlString.trim() || ['null', 'undefined'].includes(urlString.toLowerCase())) {
+            return undefined;
+        }
+
+        if (/^https?:\/\//i.test(urlString)) {
+            return urlString;
+        }
+        return `${process.env.VITE_API_URL || 'http://localhost:5000'}${urlString.startsWith('/') ? '' : '/'}${urlString}`;
     };
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            try {
-                const response = await api.get('/api/users/me');
-                const backendUser = response.data;
+            if (authUser?.id) {
+                try {
+                    const response = await api.get('/api/users/me');
+                    const backendUser = response.data;
 
-                setLocalUser({
-                    id: backendUser.id,
-                    firstName: backendUser.first_name, // Map from first_name
-                    lastName: backendUser.last_name,   // Map from last_name
-                    email: backendUser.email,
-                    avatarUrl: backendUser.avatar_url
-                });
+                    setLocalUser({
+                        id: backendUser.id,
+                        firstName: backendUser.first_name,
+                        lastName: backendUser.last_name,
+                        email: backendUser.email,
+                        avatarUrl: backendUser.avatar_url
+                    });
 
-                setFormData({
-                    firstName: backendUser.first_name || '',
-                    lastName: backendUser.last_name || '',
-                    email: backendUser.email || '',
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
-                });
-            } catch (error) {
-                console.error('Failed to fetch user profile:', error);
+                    setFormData({
+                        firstName: backendUser.first_name || '',
+                        lastName: backendUser.last_name || '',
+                        email: backendUser.email || '',
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch user profile:', error);
+                }
             }
         };
 
@@ -104,6 +112,7 @@ const UserAccountPage: React.FC = () => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             const formData = new FormData();
+            setAvatarFile(file);
             formData.append('avatar', file);
 
             try {
@@ -114,19 +123,21 @@ const UserAccountPage: React.FC = () => {
                     }
                 });
 
+                const newAvatarUrl = response.data.avatarUrl;
+
                 setLocalUser(prev => prev ? {
                     ...prev,
-                    avatarUrl: response.data.avatarUrl
+                    avatarUrl: newAvatarUrl
                 } : null);
 
                 setUser(prev => prev ? {
                     ...prev,
-                    avatarUrl: response.data.avatarUrl
+                    avatarUrl: newAvatarUrl
                 } : null);
 
-                setSuccess('Avatar updated successfully');
+                setSuccess('Avatar updated successfully!');
             } catch (error) {
-                setError(error.response?.data?.error || 'Failed to update avatar');
+                setError('Failed to update avatar');
             } finally {
                 setIsLoading(false);
             }
@@ -214,8 +225,8 @@ const UserAccountPage: React.FC = () => {
             <Paper className="profile-section" elevation={3}>
                 <Box className="avatar-container">
                     <Avatar
-                        src={getAvatarUrl(user?.avatarUrl) || undefined}
-                        sx={{width: 100, height: 100}}
+                        src={getFullAvatarUrl(user?.avatarUrl)}
+                        sx={{ width: 100, height: 100 }}
                         className="user-avatar"
                     >
                         {user?.firstName?.charAt(0)}

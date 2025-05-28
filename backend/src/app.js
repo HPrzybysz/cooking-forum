@@ -13,6 +13,7 @@ const tagRoutes = require('./routes/tags');
 const recipeImagesRoutes = require('./routes/recipeImages');
 const recipeRatingsRoutes = require('./routes/recipeRatings');
 const favoritesRoutes = require('./routes/favorites');
+const path = require('path');
 
 const app = express();
 
@@ -45,7 +46,7 @@ app.use('/api/tags', tagRoutes);
 app.use('/api', recipeImagesRoutes);
 app.use('/api', recipeRatingsRoutes);
 app.use('/api', favoritesRoutes);
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 
 const errorHandler = require('./middlewares/errorHandler');

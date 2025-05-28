@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
 import {Button, Menu, MenuItem, Avatar} from '@mui/material';
@@ -14,6 +14,10 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const {user, logout, isLoading} = useAuth();
+
+    useEffect(() =>{
+
+    }, [user]);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -44,6 +48,8 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
             console.error('Logout failed:', error);
         }
     };
+
+
 
     return (
         <header className="header">

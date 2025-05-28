@@ -1,54 +1,66 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
 import '../styles/PopularSlider.scss';
-import RecipeCard from "./RecipeCard..tsx";
+import RecipeCard from './RecipeCard';
+import {getPopularRecipes} from '../services/recipeService';
 
-
-interface RecipeSliderProps {
-    images: string[];
+interface Recipe {
+    id: string;
+    title: string;
+    imageUrl: string;
 }
 
-const RecipeSlider: React.FC<RecipeSliderProps> = ({images}) => {
+const PopularSlider: React.FC = () => {
+    const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
-    const sliderRef = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    const duplicatedImages = [...images, ...images, ...images];
+    useEffect(() => {
+        const fetchPopularRecipes = async () => {
+            try {
+                const data = await getPopularRecipes();
+                setRecipes(data);
+            } catch (error) {
+                console.error('Error fetching popular recipes:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPopularRecipes();
+    }, []);
 
     const goToPrev = () => {
-        setCurrentIndex(prev => {
-            const newIndex = prev - 1;
-            if (newIndex < 0) {
-                return images.length - 1;
-            }
-            return newIndex;
-        });
+        setCurrentIndex(prev => (prev === 0 ? recipes.length - 1 : prev - 1));
         setIsPaused(true);
         setTimeout(() => setIsPaused(false), 3000);
     };
 
     const goToNext = () => {
-        setCurrentIndex(prev => {
-            const newIndex = prev + 1;
-            if (newIndex >= images.length * 2) {
-                return images.length;
-            }
-            return newIndex;
-        });
+        setCurrentIndex(prev => (prev === recipes.length - 1 ? 0 : prev + 1));
         setIsPaused(true);
         setTimeout(() => setIsPaused(false), 3000);
     };
 
     useEffect(() => {
-        if (isPaused) return;
+        if (isPaused || recipes.length === 0) return;
 
         const interval = setInterval(() => {
             goToNext();
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [isPaused]);
+    }, [isPaused, recipes.length]);
 
-    const translateX = -currentIndex * (100 / 3);
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (recipes.length === 0) {
+        return null;
+    }
 
     return (
         <section className="popular-recipes">
@@ -62,17 +74,21 @@ const RecipeSlider: React.FC<RecipeSliderProps> = ({images}) => {
                     &#10094;
                 </button>
 
-                <div
-                    className="recipe-slider"
-                    ref={sliderRef}
-                    style={{transform: `translateX(${translateX}%)`}}
-                >
-                    {duplicatedImages.map((img, index) => (
-                        <RecipeCard
-                            key={`${index}-${img}`}
-                            image={img}
-                            title={`Popular ${(index % images.length) + 1}`}
-                        />
+                <div className="slider-track">
+                    {recipes.map((recipe, index) => (
+                        <div
+                            key={recipe.id}
+                            className="slide"
+                            style={{
+                                transform: `translateX(${100 * (index - currentIndex)}%)`,
+                            }}
+                        >
+                            <RecipeCard
+                                image={recipe.imageUrl || 'https://placehold.co/600x400'}
+                                title={recipe.title}
+                                onClick={() => navigate(`/recipe/${recipe.id}`)}
+                            />
+                        </div>
                     ))}
                 </div>
 
@@ -84,4 +100,4 @@ const RecipeSlider: React.FC<RecipeSliderProps> = ({images}) => {
     );
 };
 
-export default RecipeSlider;
+export default PopularSlider;

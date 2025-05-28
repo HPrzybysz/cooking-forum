@@ -7,6 +7,10 @@ import SignUpPage from './components/SignupPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import UserAccountPage from "./components/UserAccountPage.tsx";
+import CategoriesPage from './components/CategoriesPage';
+import CategoryRecipesPage from './components/CategoryRecipesPage';
+import RecipePage from './components/RecipePage';
+import AddRecipePage from './components/AddRecipePage';
 
 const App: React.FC = () => {
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -66,6 +70,10 @@ const App: React.FC = () => {
                             <HomePage/>
                         </ProtectedRoute>
                     }/>
+                    <Route path="/categories" element={<CategoriesPage/>}/>
+                    <Route path="/category/:categoryId" element={<CategoryRecipesPage/>}/>
+                    <Route path="/recipe/:id" element={<RecipePage/>}/>
+                    <Route path="/add-recipe" element={<ProtectedRoute><AddRecipePage/></ProtectedRoute>}/>
                 </Routes>
             </Router>
         </AuthProvider>

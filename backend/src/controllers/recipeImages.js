@@ -58,3 +58,33 @@ exports.deleteImage = async (req, res) => {
         res.status(500).json({error: error.message});
     }
 };
+
+exports.uploadImages = async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No images provided' });
+        }
+
+        const isPrimary = req.body.isPrimary === 'true';
+        const recipeId = req.params.recipeId;
+
+        await db.execute('DELETE FROM recipe_images WHERE recipe_id = ?', [recipeId]);
+
+        const results = [];
+        for (const [index, file] of req.files.entries()) {
+            const imageId = await RecipeImage.create({
+                recipeId,
+                imageData: file.buffer,
+                isPrimary: index === 0 && isPrimary
+            });
+            results.push({ id: imageId });
+        }
+
+        res.status(201).json({
+            message: 'Images uploaded successfully',
+            images: results
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

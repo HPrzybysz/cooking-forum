@@ -87,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
 
             setUser(user);
             setToken(token);
+            window.location.reload();
         } catch (error: any) {
             throw new Error(error.response?.data?.error || 'Login failed');
         } finally {

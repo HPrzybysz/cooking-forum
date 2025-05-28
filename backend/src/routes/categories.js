@@ -16,7 +16,7 @@ router.get('/', categoriesController.getAllCategories);
 router.get('/:id', categoriesController.getCategoryById);
 router.get('/:id/recipes', categoriesController.getRecipesByCategory);
 
-// Protected routes (require authentication)
+// Protected routes
 router.post('/', auth, upload.single('image'), categoriesController.createCategory);
 router.put('/:id', auth, upload.single('image'), categoriesController.updateCategory);
 router.delete('/:id', auth, categoriesController.deleteCategory);

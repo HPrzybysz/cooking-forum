@@ -2,6 +2,10 @@ const db = require('../config/db');
 
 class Recipe {
     static async create({userId, title, description, prepTime, servings, equipment, authorNote, categoryId}) {
+        equipment = equipment !== undefined ? equipment : null;
+        authorNote = authorNote !== undefined ? authorNote : null;
+        categoryId = categoryId !== undefined ? categoryId : null;
+
         const [result] = await db.execute(
             'INSERT INTO recipes (user_id, title, description, prep_time, servings, equipment, author_note, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [userId, title, description, prepTime, servings, equipment, authorNote, categoryId]

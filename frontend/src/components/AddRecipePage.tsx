@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -11,14 +12,16 @@ import {
     Select,
     FormControl,
     InputLabel,
-    SelectChangeEvent
+    SelectChangeEvent,
+    CircularProgress
 } from '@mui/material';
-import {useNavigate} from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { createRecipe } from '../services/recipeService';
+import api from '../api/index';
+import { useAuth } from '../context/AuthContext';
 import '../styles/AddRecipePage.scss';
-
 interface Ingredient {
     id: string;
     name: string;
@@ -37,6 +40,7 @@ interface Category {
 
 const AddRecipePage: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [recipeData, setRecipeData] = useState({
         title: '',
         description: '',
@@ -51,20 +55,83 @@ const AddRecipePage: React.FC = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [newTag, setNewTag] = useState('');
     const [images, setImages] = useState<string[]>([]);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [newIngredient, setNewIngredient] = useState({
         name: '',
         amount: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
 
-    //Sample categories
-    const categories: Category[] = [
-        {id: '1', name: 'Breakfast'},
-        {id: '2', name: 'Dinner'},
-        {id: '3', name: 'Desserts'},
-        {id: '4', name: 'Snacks'},
-        {id: '5', name: 'Salads'},
-        {id: '6', name: 'Oven'},
-    ];
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
+            const result = await createRecipe({
+                title: recipeData.title,
+                description: recipeData.description,
+                prep_time: recipeData.prepTime ? parseInt(recipeData.prepTime) : null,
+                servings: recipeData.servings ? parseInt(recipeData.servings) : null,
+                equipment: recipeData.equipment || null,
+                author_note: recipeData.authorNote || null,
+                category_id: recipeData.category ? parseInt(recipeData.category) : null,
+                ingredients: ingredients.map(ing => ({
+                    name: ing.name,
+                    amount: ing.amount
+                })),
+                steps: steps
+                    .filter(step => step.instruction.trim())
+                    .map((step, index) => ({
+                        step_number: index + 1,
+                        instruction: step.instruction
+                    })),
+                tags
+            }, user.id);
+
+            if (imageFiles.length > 0) {
+                const formData = new FormData();
+                imageFiles.forEach((file, index) => {
+                    formData.append('images', file);
+                    if (index === 0) formData.append('isPrimary', 'true');
+                });
+
+                await api.post(`/api/recipes/${result.recipeId}/images`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+            }
+
+            navigate(`/recipe/${result.recipeId}`);
+        } catch (error) {
+            console.error('Error creating recipe:', error);
+            alert('Failed to create recipe. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await api.get('/api/categories');
+                setAvailableCategories(response.data);
+            } catch (error) {
+                console.error('Failed to load categories', error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+
+
 
     //hashtags for suggestions
     const suggestedTags = [
@@ -142,8 +209,11 @@ const AddRecipePage: React.FC = () => {
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0 && images.length < 5) {
+        if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files).slice(0, 5 - images.length);
+            setImageFiles(prev => [...prev, ...files]);
+
+            // Create preview URLs
             const newImages = files.map(file => URL.createObjectURL(file));
             setImages(prev => [...prev, ...newImages]);
         }
@@ -151,24 +221,6 @@ const AddRecipePage: React.FC = () => {
 
     const handleRemoveImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const recipe = {
-            ...recipeData,
-            ingredients,
-            steps: steps.filter(step => step.instruction.trim()),
-            tags,
-            images,
-            createdAt: new Date().toISOString()
-        };
-
-        console.log('Recipe data to save:', recipe);
-        //TO DO: API call to save the recipe
-        alert('Recipe saved');
-        navigate('/');
     };
 
     return (
@@ -293,7 +345,7 @@ const AddRecipePage: React.FC = () => {
                                 onChange={handleCategoryChange}
                                 required
                             >
-                                {categories.map(category => (
+                                {availableCategories.map(category => (
                                     <MenuItem key={category.id} value={category.id}>
                                         {category.name}
                                     </MenuItem>
@@ -421,7 +473,7 @@ const AddRecipePage: React.FC = () => {
                             Add
                         </Button>
                     </Box>
-                    <Typography variant="body2" sx={{marginTop: '0.5rem'}}>
+                    <Typography variant="h6" sx={{marginTop: '0.5rem', fontSize: "1rem"}}>
                         Suggestions: {suggestedTags.map(tag => (
                         <Chip
                             key={tag}
@@ -462,6 +514,7 @@ const AddRecipePage: React.FC = () => {
                         variant="contained"
                         size="large"
                         disabled={
+                            loading ||
                             !recipeData.title ||
                             !recipeData.description ||
                             !recipeData.prepTime ||
@@ -478,7 +531,7 @@ const AddRecipePage: React.FC = () => {
                             }
                         }}
                     >
-                        Save Recipe
+                        {loading ? <CircularProgress size={24} color="inherit"/> : 'Save Recipe'}
                     </Button>
                 </Box>
             </form>

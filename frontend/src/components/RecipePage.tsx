@@ -1,41 +1,65 @@
-import React from "react";
-import {
-    Box,
-    Typography,
-    Divider,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemIcon,
-    Avatar,
-    Chip,
-    useTheme,
-    useMediaQuery
-} from '@mui/material';
+// src/pages/RecipePage.tsx
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Box, Typography, Divider, List, ListItem, ListItemText, ListItemIcon, Avatar, Chip, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import {Recipe} from './types.ts';
+import { Recipe } from './types';
+import { getRecipe } from '../services/recipeService';
 import '../styles/RecipePage.scss';
 
-interface IRecipePageProps {
-    recipe: Recipe;
-}
-
-const RecipePage: React.FC<IRecipePageProps> = ({recipe}) => {
+const RecipePage: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [recipe, setRecipe] = useState<Recipe | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecipe = async () => {
+            try {
+                if (id) {
+                    const data = await getRecipe(id);
+                    setRecipe(data);
+                }
+            } catch (error) {
+                console.error('Error fetching recipe:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecipe();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!recipe) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                <Typography variant="h5">Recipe not found</Typography>
+            </Box>
+        );
+    }
 
     return (
         <Box className="recipe-page">
-            {/*Title*/}
+            {/* Title */}
             <Typography variant="h2" component="h1" className="recipe-title">{recipe.title}</Typography>
 
-            {/*Main*/}
+            {/* Main */}
             <Box className="recipe-content" flexDirection={isMobile ? 'column' : 'row'}>
                 <Box className="recipe-left-column">
                     <img
                         src={recipe.imageUrl || 'https://placehold.co/600x400'}
                         alt={recipe.title}
                         className="recipe-image"
+                        loading="lazy"
                     />
 
                     <Divider className="recipe-divider"/>
@@ -63,7 +87,7 @@ const RecipePage: React.FC<IRecipePageProps> = ({recipe}) => {
                     </List>
                 </Box>
 
-                {/* Right*/}
+                {/* Right */}
                 <Box className="recipe-right-column">
                     <Typography variant="h5" className="instructions-title">
                         Instructions
@@ -105,6 +129,7 @@ const RecipePage: React.FC<IRecipePageProps> = ({recipe}) => {
                 </Box>
             </Box>
         </Box>
-    )
-}
+    );
+};
+
 export default RecipePage;

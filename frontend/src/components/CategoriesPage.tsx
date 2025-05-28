@@ -1,6 +1,7 @@
-import React from 'react';
-import {Box, Typography, Button} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Box, Typography, Button, CircularProgress, Grid} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
+import {getCategories} from '../services/categoryService';
 import '../styles/CategoriesPage.scss';
 
 interface Category {
@@ -11,44 +12,60 @@ interface Category {
 
 const CategoriesPage: React.FC = () => {
     const navigate = useNavigate();
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const categories: Category[] = [
-        {
-            id: '1',
-            name: 'Breakfast',
-            imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop'
-        },
-        {
-            id: '2',
-            name: 'Dinner',
-            imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop'
-        },
-        {
-            id: '3',
-            name: 'Desserts',
-            imageUrl: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&auto=format&fit=crop'
-        },
-        {
-            id: '4',
-            name: 'Snacks',
-            imageUrl: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&auto=format&fit=crop'
-        },
-        {
-            id: '5',
-            name: 'Salads',
-            imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop'
-        },
-        {
-            id: '6',
-            name: 'Oven',
-            imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop'
-        },
-    ];
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await getCategories();
+                setCategories(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchCategories = async () => {
+            try {
+                const data = await getCategories();
+                if (isMounted) {
+                    setCategories(data);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchCategories();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleCategoryClick = (categoryId: string) => {
-        // To do - database needed
-        console.log(`Selected category: ${categoryId}`);
+        navigate(`/category/${categoryId}`);
     };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                <CircularProgress/>
+            </Box>
+        );
+    }
 
     return (
         <Box className="categories-page">
@@ -71,22 +88,27 @@ const CategoriesPage: React.FC = () => {
                 Recipe Categories
             </Typography>
 
-            <Box className="categories-grid">
+            <Grid container spacing={3} className="categories-grid">
                 {categories.map((category) => (
-                    <Box
-                        key={category.id}
-                        className="category-card"
-                        onClick={() => handleCategoryClick(category.id)}
-                    >
-                        <Box className="category-image">
-                            <img src={category.imageUrl} alt={category.name}/>
+                    <Grid key={category.id}>
+                        <Box
+                            className="category-card"
+                            onClick={() => handleCategoryClick(category.id)}
+                        >
+                            <Box className="category-image">
+                                <img
+                                    src={category.imageUrl || 'https://placehold.co/600x400'}
+                                    alt={category.name}
+                                    loading="lazy"
+                                />
+                            </Box>
+                            <Typography variant="h3" className="category-name">
+                                {category.name}
+                            </Typography>
                         </Box>
-                        <Typography variant="h3" className="category-name">
-                            {category.name}
-                        </Typography>
-                    </Box>
+                    </Grid>
                 ))}
-            </Box>
+            </Grid>
         </Box>
     );
 };
