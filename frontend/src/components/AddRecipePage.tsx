@@ -13,13 +13,18 @@ import {
     FormControl,
     InputLabel,
     SelectChangeEvent,
-    CircularProgress
+    CircularProgress,
+    Autocomplete,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import {createRecipe} from '../services/recipeService';
-import {getCategories} from '../services/categoryService';
+import {getCategories, createCategory} from '../services/categoryService';
 import {getTags} from '../services/tagService';
 import api from '../api/index';
 import {useAuth} from '../context/AuthContext';
@@ -56,7 +61,6 @@ const AddRecipePage: React.FC = () => {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [steps, setSteps] = useState<Step[]>([]);
     const [tags, setTags] = useState<string[]>([]);
-    const [newTag, setNewTag] = useState('');
     const [images, setImages] = useState<string[]>([]);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [newIngredient, setNewIngredient] = useState({
@@ -66,6 +70,9 @@ const AddRecipePage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
     const [availableTags, setAvailableTags] = useState<string[]>([]);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+    const [categoryLoading, setCategoryLoading] = useState(false);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -147,16 +154,33 @@ const AddRecipePage: React.FC = () => {
         fetchInitialData();
     }, []);
 
-
-    //hashtags for suggestions
-    const suggestedTags = availableTags.filter(tag => !tags.includes(tag));
-
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
         setRecipeData(prev => ({
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleCreateCategory = async () => {
+        if (!newCategoryName.trim()) return;
+
+        setCategoryLoading(true);
+        try {
+            const newCategory = await createCategory({name: newCategoryName});
+            setAvailableCategories(prev => [...prev, newCategory]);
+            setRecipeData(prev => ({
+                ...prev,
+                category: newCategory.id.toString()
+            }));
+            setIsCategoryDialogOpen(false);
+            setNewCategoryName('');
+        } catch (error) {
+            console.error('Error creating category:', error);
+            alert('Failed to create category. Please try again.');
+        } finally {
+            setCategoryLoading(false);
+        }
     };
 
     const handleCategoryChange = (e: SelectChangeEvent) => {
@@ -202,24 +226,16 @@ const AddRecipePage: React.FC = () => {
     const handleRemoveStep = (id: string) => {
         setSteps(prev => prev.filter(step => step.id !== id));
     };
-
-    const handleAddTag = () => {
-        if (newTag.trim() && !tags.includes(newTag.trim())) {
-            setTags(prev => [...prev, newTag.trim()]);
-            setNewTag('');
-        }
+    const handleTagsChange = (_event: React.SyntheticEvent, value: string[]) => {
+        setTags(value);
     };
 
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(prev => prev.filter(tag => tag !== tagToRemove));
-    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files).slice(0, 5 - images.length);
             setImageFiles(prev => [...prev, ...files]);
 
-            // Create preview URLs
             const newImages = files.map(file => URL.createObjectURL(file));
             setImages(prev => [...prev, ...newImages]);
         }
@@ -356,14 +372,14 @@ const AddRecipePage: React.FC = () => {
                                         {category.name}
                                     </MenuItem>
                                 ))}
+                                <MenuItem onClick={() => setIsCategoryDialogOpen(true)}>
+                                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                        <AddIcon sx={{mr: 1}}/>
+                                        Create New Category
+                                    </Box>
+                                </MenuItem>
                             </Select>
                         </FormControl>
-                        <TextField
-                            label="Equipment Needed (optional)"
-                            name="equipment"
-                            value={recipeData.equipment}
-                            onChange={handleInputChange}
-                        />
                     </Box>
                 </Box>
 
@@ -450,52 +466,58 @@ const AddRecipePage: React.FC = () => {
                     <Typography variant="h3" className="section-title">
                         Tags
                     </Typography>
-                    <Box className="tags-container">
-                        {tags.map(tag => (
-                            <Chip
-                                key={tag}
-                                label={`#${tag}`}
-                                onDelete={() => handleRemoveTag(tag)}
-                                sx={{margin: '0.25rem'}}
+                    <Autocomplete
+                        multiple
+                        options={availableTags}
+                        value={tags}
+                        onChange={handleTagsChange}
+                        freeSolo
+                        renderTags={(value: string[], getTagProps) =>
+                            value.map((option: string, index: number) => (
+                                <Chip
+                                    label={`#${option}`}
+                                    {...getTagProps({index})}
+                                    sx={{margin: '0.25rem'}}
+                                />
+                            ))
+                        }
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Add Tags"
+                                margin="normal"
+                                size="small"
                             />
-                        ))}
-                    </Box>
-                    <Box className="add-tag">
-                        <TextField
-                            label="Add Tag"
-                            value={newTag}
-                            onChange={(e) => setNewTag(e.target.value)}
-                            margin="normal"
-                            size="small"
-                            onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                        />
-                        <Button
-                            variant="contained"
-                            onClick={handleAddTag}
-                            disabled={!newTag.trim()}
-                            startIcon={<AddIcon/>}
-                            sx={{marginLeft: '1rem'}}
-                        >
-                            Add
-                        </Button>
-                    </Box>
-                    <Typography variant="h6" sx={{marginTop: '0.5rem', fontSize: "1rem"}}>
-                        Suggestions: {suggestedTags.map(tag => (
-                        <Chip
-                            key={tag}
-                            label={tag}
-                            size="small"
-                            onClick={() => {
-                                if (!tags.includes(tag)) {
-                                    setTags(prev => [...prev, tag]);
-                                }
-                            }}
-                            sx={{margin: '0.25rem', cursor: 'pointer'}}
-                            color={tags.includes(tag) ? 'primary' : 'default'}
-                        />
-                    ))}
+                        )}
+                    />
+                    <Typography variant="caption" sx={{mt: 1, display: 'block'}}>
+                        Start typing to see suggestions or create new tag and press enter
                     </Typography>
                 </Box>
+
+                <Dialog open={isCategoryDialogOpen} onClose={() => setIsCategoryDialogOpen(false)}>
+                    <DialogTitle>Create New Category</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            label="Category Name"
+                            fullWidth
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setIsCategoryDialogOpen(false)}>Cancel</Button>
+                        <Button
+                            onClick={handleCreateCategory}
+                            disabled={!newCategoryName.trim() || categoryLoading}
+                            startIcon={categoryLoading ? <CircularProgress size={20}/> : null}
+                        >
+                            Create
+                        </Button>
+                    </DialogActions>
+                </Dialog>
 
                 {/* Author's Note */}
                 <Box className="section">
