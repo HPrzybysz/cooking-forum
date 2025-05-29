@@ -20,6 +20,10 @@ function errorHandler(err, req, res, next) {
         return res.status(409).json({error: 'Duplicate entry'});
     }
 
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({error: 'File size too large'});
+    }
+
     res.status(err.status || 500).json({
         error: err.message || 'Internal Server Error',
     });

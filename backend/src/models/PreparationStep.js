@@ -33,6 +33,14 @@ class PreparationStep {
         return result.affectedRows > 0;
     }
 
+    static async deleteAllForRecipe(recipeId) {
+        const [result] = await db.execute(
+            'DELETE FROM preparation_steps WHERE recipe_id = ?',
+            [recipeId]
+        );
+        return result.affectedRows > 0;
+    }
+
     static async reorderSteps(recipeId, steps) {
         await db.query('START TRANSACTION');
         try {

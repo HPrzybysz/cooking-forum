@@ -13,6 +13,7 @@ const tagRoutes = require('./routes/tags');
 const recipeImagesRoutes = require('./routes/recipeImages');
 const recipeRatingsRoutes = require('./routes/recipeRatings');
 const favoritesRoutes = require('./routes/favorites');
+const recipeComponentsRoutes = require('./routes/recipeComponents');
 const path = require('path');
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api', recipeComponentsRoutes);
 app.use('/api', statsRoutes);
 app.use('/api', stepsRoutes);
 app.use('/api/tags', tagRoutes);

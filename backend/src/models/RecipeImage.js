@@ -1,17 +1,14 @@
 const db = require('../config/db');
 
 class RecipeImage {
-    static async create({ recipeId, imageUrl = null, imageData = null, isPrimary = false }) {
-        if (!imageUrl && !imageData) {
-            throw new Error('Either imageUrl or imageData must be provided');
-        }
-
+    static async create({recipeId, imageData, isPrimary = false}) {
         const [result] = await db.execute(
-            'INSERT INTO recipe_images (recipe_id, image_url, image_data, is_primary) VALUES (?, ?, ?, ?)',
-            [recipeId, imageUrl, imageData, isPrimary]
+            'INSERT INTO recipe_images (recipe_id, image_data, is_primary) VALUES (?, ?, ?)',
+            [recipeId, imageData, isPrimary]
         );
         return result.insertId;
     }
+
 
     static async getByRecipeId(recipeId) {
         const [rows] = await db.execute(
@@ -44,6 +41,14 @@ class RecipeImage {
         const [result] = await db.execute(
             'DELETE FROM recipe_images WHERE id = ?',
             [imageId]
+        );
+        return result.affectedRows > 0;
+    }
+
+    static async deleteAllForRecipe(recipeId) {
+        const [result] = await db.execute(
+            'DELETE FROM recipe_images WHERE recipe_id = ?',
+            [recipeId]
         );
         return result.affectedRows > 0;
     }

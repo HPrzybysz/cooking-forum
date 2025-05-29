@@ -1,32 +1,37 @@
 const RecipeImage = require('../models/RecipeImage');
-const multer = require('multer');
-const upload = multer({storage: multer.memoryStorage()}).single('image');
+const db = require('../config/db');
 
-exports.uploadImage = async (req, res) => {
-    upload(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ error: err.message });
+exports.uploadImages = async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No images provided' });
         }
 
-        try {
-            if (!req.file) {
-                return res.status(400).json({ error: 'No image file provided' });
-            }
+        const recipeId = req.params.recipeId;
+        const isPrimary = req.body.isPrimary === 'true';
 
+        await db.query('START TRANSACTION');
+
+        const results = [];
+        for (const [index, file] of req.files.entries()) {
             const imageId = await RecipeImage.create({
-                recipeId: req.params.recipeId,
-                imageData: req.file.buffer,
-                isPrimary: req.body.isPrimary === 'true'
+                recipeId,
+                imageData: file.buffer,
+                isPrimary: index === 0 && isPrimary
             });
-
-            res.status(201).json({
-                id: imageId,
-                message: 'Image uploaded successfully'
-            });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
+            results.push({ id: imageId });
         }
-    });
+
+        await db.query('COMMIT');
+        res.status(201).json({
+            message: 'Images uploaded successfully',
+            images: results
+        });
+    } catch (error) {
+        await db.query('ROLLBACK');
+        console.error('Error uploading images:', error);
+        res.status(500).json({ error: error.message });
+    }
 };
 
 exports.getRecipeImages = async (req, res) => {

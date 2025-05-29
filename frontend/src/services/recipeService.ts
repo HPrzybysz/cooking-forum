@@ -36,25 +36,13 @@ export const createRecipe = async (
         });
         const recipeId = recipeResponse.data.recipeId;
 
-        if (recipeData.ingredients.length > 0) {
-            await api.post(`/recipes/${recipeId}/ingredients`, {
-                ingredients: recipeData.ingredients
-            });
-        }
+        await api.post(`/api/recipes/${recipeId}/components`, {
+            ingredients: recipeData.ingredients,
+            steps: recipeData.steps,
+            tags: recipeData.tags
+        });
 
-        if (recipeData.steps.length > 0) {
-            await api.post(`/recipes/${recipeId}/steps`, {
-                steps: recipeData.steps
-            });
-        }
-
-        if (recipeData.tags.length > 0) {
-            await api.post(`/recipes/${recipeId}/tags`, {
-                tags: recipeData.tags
-            });
-        }
-
-        return { ...recipeResponse.data, recipeId };
+        return {...recipeResponse.data, recipeId};
     } catch (error) {
         console.error('Error creating recipe:', error);
         throw error;

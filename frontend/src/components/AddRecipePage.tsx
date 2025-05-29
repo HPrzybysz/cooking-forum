@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -18,10 +18,13 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { createRecipe } from '../services/recipeService';
+import {createRecipe} from '../services/recipeService';
+import {getCategories} from '../services/categoryService';
+import {getTags} from '../services/tagService';
 import api from '../api/index';
-import { useAuth } from '../context/AuthContext';
+import {useAuth} from '../context/AuthContext';
 import '../styles/AddRecipePage.scss';
+
 interface Ingredient {
     id: string;
     name: string;
@@ -40,7 +43,7 @@ interface Category {
 
 const AddRecipePage: React.FC = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const {user} = useAuth();
     const [recipeData, setRecipeData] = useState({
         title: '',
         description: '',
@@ -62,6 +65,7 @@ const AddRecipePage: React.FC = () => {
     });
     const [loading, setLoading] = useState(false);
     const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -94,11 +98,14 @@ const AddRecipePage: React.FC = () => {
                 tags
             }, user.id);
 
+            // image uploads
             if (imageFiles.length > 0) {
                 const formData = new FormData();
                 imageFiles.forEach((file, index) => {
                     formData.append('images', file);
-                    if (index === 0) formData.append('isPrimary', 'true');
+                    if (index === 0) {
+                        formData.append('isPrimary', 'true');
+                    }
                 });
 
                 await api.post(`/api/recipes/${result.recipeId}/images`, formData, {
@@ -109,41 +116,40 @@ const AddRecipePage: React.FC = () => {
             }
 
             navigate(`/recipe/${result.recipeId}`);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating recipe:', error);
-            alert('Failed to create recipe. Please try again.');
+            alert(error.response?.data?.error || error.message || 'Failed to create recipe. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        return () => {
+            images.forEach(image => URL.revokeObjectURL(image));
+        };
+    }, [images]);
+
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchInitialData = async () => {
             try {
-                const response = await api.get('/api/categories');
-                setAvailableCategories(response.data);
+                const [categories, tags] = await Promise.all([
+                    getCategories(),
+                    getTags()
+                ]);
+                setAvailableCategories(categories);
+                setAvailableTags(tags.map(tag => tag.name)); // Set available tags from backend
             } catch (error) {
-                console.error('Failed to load categories', error);
+                console.error('Failed to load initial data', error);
             }
         };
-        fetchCategories();
+        fetchInitialData();
     }, []);
 
 
-
-
     //hashtags for suggestions
-    const suggestedTags = [
-        'vegetarian',
-        'vegan',
-        'gluten-free',
-        'quick-meal',
-        'healthy',
-        'comfort-food',
-        'low-carb',
-        'high-protein'
-    ];
+    const suggestedTags = availableTags.filter(tag => !tags.includes(tag));
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
