@@ -74,7 +74,7 @@ async function sendPasswordResetEmail(email, token) {
 
     try {
         const info = await transporter.sendMail(mailOptions);
-        logger.info(`Email sent to ${email}`, { messageId: info.messageId });
+        logger.info(`Email sent to ${email}`, {messageId: info.messageId});
         return true;
     } catch (error) {
         logger.error('Email sending failed', {
@@ -86,4 +86,4 @@ async function sendPasswordResetEmail(email, token) {
     }
 }
 
-module.exports = { sendPasswordResetEmail };
+module.exports = {sendPasswordResetEmail};

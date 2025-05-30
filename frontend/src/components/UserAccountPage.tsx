@@ -8,7 +8,7 @@ import {
     Paper,
     InputAdornment,
     CircularProgress,
-    Alert
+    Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
@@ -17,8 +17,11 @@ import LockIcon from '@mui/icons-material/Lock';
 import EmailIcon from '@mui/icons-material/Email';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '../context/AuthContext';
+import {getRecipesByUser} from '../services/recipeService';
+import {getRecipeImages} from "../services/recipeImageService.ts";
 import api from '../api';
 import '../styles/UserAccountPage.scss';
+import {Recipe, RecipeImage} from './types.ts';
 
 interface UserProfile {
     id: number;
@@ -28,18 +31,13 @@ interface UserProfile {
     avatarUrl?: string;
 }
 
-interface Recipe {
-    id: number;
-    title: string;
-    imageUrl: string;
-}
-
 const UserAccountPage: React.FC = () => {
     const navigate = useNavigate();
     const {user: authUser, setUser} = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [recipesLoading, setRecipesLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [user, setLocalUser] = useState<UserProfile | null>(null);
@@ -70,7 +68,7 @@ const UserAccountPage: React.FC = () => {
     };
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
+        const fetchUserData = async () => {
             if (authUser?.id) {
                 try {
                     const response = await api.get('/api/users/me');
@@ -92,15 +90,52 @@ const UserAccountPage: React.FC = () => {
                         newPassword: '',
                         confirmPassword: ''
                     });
+
+                    setRecipesLoading(true);
+                    const recipesResponse = await getRecipesByUser();
+
+                    const recipesWithImages = await Promise.all(
+                        (recipesResponse as Recipe[]).map(async (recipe) => {
+                            try {
+                                const images = await getRecipeImages(recipe.id.toString());
+                                return {
+                                    ...recipe,
+                                    images: images || []
+                                };
+                            } catch (error) {
+                                console.error(`Error fetching images for recipe ${recipe.id}:`, error);
+                                return {
+                                    ...recipe,
+                                    images: []
+                                };
+                            }
+                        })
+                    );
+
+                    setRecipes(recipesWithImages);
                 } catch (error) {
-                    console.error('Failed to fetch user profile:', error);
+                    console.error('Failed to fetch user data:', error);
+                    setError('Failed to load user data');
+                } finally {
+                    setRecipesLoading(false);
                 }
             }
         };
 
         if (authUser) {
-            fetchUserProfile();
+            fetchUserData();
         }
+
+        return () => {
+            recipes.forEach(recipe => {
+                recipe.images?.forEach(image => {
+                    if (image.image_data && !image.image_url) {
+                        URL.revokeObjectURL(getImageUrl(image));
+                    }
+                });
+            });
+        };
+
     }, [authUser]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,29 +224,108 @@ const UserAccountPage: React.FC = () => {
         }
     };
 
+    const formatDate = (dateString: string): string => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
     if (!user) {
-        return <CircularProgress/>;
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+                <CircularProgress/>
+            </Box>
+        );
     }
 
-    const renderRecipesSection = () => (
-        <Paper className="recipes-section" elevation={3}>
-            <Typography variant="h5" className="section-title">
-                My Recipes
-            </Typography>
-            <Box className="recipes-grid">
-                {recipes.map((recipe: Recipe) => (
-                    <Box
-                        key={recipe.id}
-                        className="recipe-card"
-                        onClick={() => navigate(`/recipe/${recipe.id}`)}
-                    >
-                        <img src={recipe.imageUrl} alt={recipe.title}/>
-                        <Typography variant="subtitle1">{recipe.title}</Typography>
+    const getImageUrl = (image: RecipeImage | undefined, width: number = 600, height: number = 400): string => {
+        if (image?.image_url) {
+            return image.image_url.startsWith('http')
+                ? image.image_url
+                : `${process.env.VITE_API_URL || 'http://localhost:5000'}${image.image_url.startsWith('/') ? '' : '/'}${image.image_url}`;
+        }
+
+        if (image?.image_data) {
+            try {
+                const blob = new Blob([new Uint8Array(image.image_data.data)],
+                    {type: image.image_data.type || 'image/jpeg'});
+                return URL.createObjectURL(blob);
+            } catch (err) {
+                console.error('Error creating image URL:', err);
+            }
+        }
+
+        return `https://placehold.co/${width}x${height}?text=No+Image`;
+    };
+
+    const renderRecipesSection = () => {
+        return (
+            <Box className="recipes-section">
+                <Typography variant="h5" gutterBottom className="section-title">
+                    My Recipes ({recipes.length})
+                </Typography>
+
+                {recipesLoading ? (
+                    <Box display="flex" justifyContent="center" py={4}>
+                        <CircularProgress/>
                     </Box>
-                ))}
+                ) : recipes.length === 0 ? (
+                    <Box textAlign="center" py={4}>
+                        <Typography variant="body1" color="text.secondary">
+                            You haven't created any recipes yet.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            sx={{mt: 2}}
+                            onClick={() => navigate('/add-recipe')}
+                        >
+                            Create Your First Recipe
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box className="recipes-grid">
+                        {recipes.map((recipe) => {
+                            const primaryImage = recipe.images?.find(img => img.is_primary) || recipe.images?.[0];
+                            const imageWidth = 250;
+                            const imageHeight = 200;
+
+                            return (
+                                <Box
+                                    key={recipe.id}
+                                    className="recipe-card"
+                                    onClick={() => navigate(`/recipe/${recipe.id}`)}
+                                >
+                                    <Box className="recipe-image">
+                                        <img
+                                            src={getImageUrl(primaryImage, imageWidth, imageHeight)}
+                                            alt={recipe.title}
+                                            loading="lazy"
+                                        />
+                                    </Box>
+                                    <Typography variant="h6" className="recipe-name">
+                                        {recipe.title}
+                                    </Typography>
+                                    <Box className="recipe-meta">
+                                        <Typography variant="caption">
+                                            ⏱️ {recipe.prep_time} min
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            🍽️ {recipe.servings} servings
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            {formatDate(recipe.created_at)}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                )}
             </Box>
-        </Paper>
-    );
+        );
+    };
 
     return (
         <Box className="user-account-page">
@@ -226,7 +340,7 @@ const UserAccountPage: React.FC = () => {
                 <Box className="avatar-container">
                     <Avatar
                         src={getFullAvatarUrl(user?.avatarUrl)}
-                        sx={{ width: 100, height: 100 }}
+                        sx={{width: 100, height: 100}}
                         className="user-avatar"
                     >
                         {user?.firstName?.charAt(0)}

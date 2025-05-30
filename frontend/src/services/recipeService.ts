@@ -1,4 +1,5 @@
 import api from '../api/index';
+import {Recipe} from "../components/types.ts";
 
 interface RecipePayload {
     title: string;
@@ -57,4 +58,9 @@ export const getRecipe = async (id: string) => {
 export const getPopularRecipes = async () => {
     const response = await api.get('/api/recipes/popular');
     return response.data;
+};
+
+export const getRecipesByUser = async (): Promise<Recipe[]> => {
+    const response = await api.get('/api/recipes/user/me');
+    return response.data as Recipe[];
 };
