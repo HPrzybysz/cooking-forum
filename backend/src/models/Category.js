@@ -11,7 +11,7 @@ class Category {
         return rows[0];
     }
 
-    static async create({ name, imageData }) {
+    static async create({name, imageData}) {
         const [result] = await db.execute(
             'INSERT INTO categories (name, image_url) VALUES (?, ?)',
             [name, imageData]
@@ -19,7 +19,7 @@ class Category {
         return result.insertId;
     }
 
-    static async update(id, { name, imageData }) {
+    static async update(id, {name, imageData}) {
         if (imageData) {
             const [result] = await db.execute(
                 'UPDATE categories SET name = ?, image_url = ? WHERE id = ?',

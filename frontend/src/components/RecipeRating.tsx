@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Rating, Box, Typography } from '@mui/material';
+import React, {useState, useEffect} from 'react';
+import {Rating, Box, Typography} from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import api from '../api';
-import { useAuth } from '../context/AuthContext';
+import {useAuth} from '../context/AuthContext';
 
 interface RecipeRatingProps {
     recipeId: number;
@@ -19,8 +19,8 @@ interface RatingData {
     }>;
 }
 
-const RecipeRating: React.FC<RecipeRatingProps> = ({ recipeId, showAverage = false, size = 'medium' }) => {
-    const { user } = useAuth();
+const RecipeRating: React.FC<RecipeRatingProps> = ({recipeId, showAverage = false, size = 'medium'}) => {
+    const {user} = useAuth();
     const [userRating, setUserRating] = useState<number | null>(null);
     const [ratingData, setRatingData] = useState<RatingData>({
         average: 0,
@@ -62,7 +62,7 @@ const RecipeRating: React.FC<RecipeRatingProps> = ({ recipeId, showAverage = fal
         if (!user || !newValue) return;
         setLoading(true);
         try {
-            await api.post(`/api/recipes/${recipeId}/ratings`, { rating: newValue });
+            await api.post(`/api/recipes/${recipeId}/ratings`, {rating: newValue});
             setUserRating(newValue);
 
             const response = await api.get(`/api/recipes/${recipeId}/ratings`);
@@ -87,7 +87,7 @@ const RecipeRating: React.FC<RecipeRatingProps> = ({ recipeId, showAverage = fal
                 precision={0.5}
                 readOnly={!user || loading}
                 size={size}
-                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                emptyIcon={<StarIcon style={{opacity: 0.55}} fontSize="inherit"/>}
             />
             {showAverage && ratingData.count > 0 && (
                 <Typography variant="body2" color="text.secondary">

@@ -8,7 +8,7 @@ const multer = require("multer");
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: 20 * 1024 * 1024, // 20MB
         files: 5 // Max 5 files
     }
 }).array('images');
@@ -20,5 +20,7 @@ router.get('/recipes/:recipeId/images', recipeImagesController.getRecipeImages);
 router.post('/recipes/:recipeId/images', auth, upload, recipeImagesController.uploadImages);
 router.put('/recipes/:recipeId/images/:imageId/primary', auth, recipeImagesController.setPrimaryImage);
 router.delete('/images/:imageId', auth, recipeImagesController.deleteImage);
+router.post('/recipes/images/pre-upload', auth, upload, recipeImagesController.preUploadImages);
+router.post('/recipes/:recipeId/images/finalize', auth, recipeImagesController.finalizeImageUpload);
 
 module.exports = router;

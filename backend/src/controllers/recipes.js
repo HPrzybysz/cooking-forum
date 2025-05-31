@@ -2,8 +2,6 @@ const Recipe = require('../models/Recipe');
 const Ingredient = require('../models/Ingredient');
 const PreparationStep = require('../models/PreparationStep');
 const Tag = require('../models/Tag');
-const RecipeImage = require('../models/RecipeImage');
-const {generateToken} = require('../utils/encryption');
 const db = require('../config/db');
 
 exports.createRecipe = async (req, res) => {
@@ -20,7 +18,7 @@ exports.createRecipe = async (req, res) => {
         } = req.body;
 
         if (!title || !description || prep_time === undefined || servings === undefined) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return res.status(400).json({error: 'Missing required fields'});
         }
 
         const recipeId = await Recipe.create({
@@ -40,17 +38,17 @@ exports.createRecipe = async (req, res) => {
         });
     } catch (error) {
         console.error('Recipe creation error:', error);
-        res.status(400).json({ error: error.message });
+        res.status(400).json({error: error.message});
     }
 };
 
 exports.addRecipeComponents = async (req, res) => {
     try {
-        const { recipeId } = req.params;
+        const {recipeId} = req.params;
 
         const recipe = await Recipe.getById(recipeId);
         if (!recipe) {
-            return res.status(404).json({ error: 'Recipe not found' });
+            return res.status(404).json({error: 'Recipe not found'});
         }
 
         if (req.body.ingredients) {
@@ -75,9 +73,9 @@ exports.addRecipeComponents = async (req, res) => {
             }
         }
 
-        res.json({ message: 'Recipe components added successfully' });
+        res.json({message: 'Recipe components added successfully'});
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({error: error.message});
     }
 };
 

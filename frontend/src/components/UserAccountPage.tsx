@@ -42,6 +42,7 @@ const UserAccountPage: React.FC = () => {
     const [success, setSuccess] = useState<string | null>(null);
     const [user, setLocalUser] = useState<UserProfile | null>(null);
     const [recipes, setRecipes] = useState<Recipe[]>([]);
+    // @ts-ignore
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
     const [formData, setFormData] = useState({
@@ -144,6 +145,7 @@ const UserAccountPage: React.FC = () => {
         setFormData(prev => ({...prev, [name]: value}));
     };
 
+    // @ts-ignore
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -230,9 +232,8 @@ const UserAccountPage: React.FC = () => {
             const errorMessage = error.response?.data?.error || 'Failed to change password';
             setError(errorMessage);
 
-            // Clear current password field if it was wrong
             if (errorMessage.includes('Current password is incorrect')) {
-                setFormData(prev => ({ ...prev, currentPassword: '' }));
+                setFormData(prev => ({...prev, currentPassword: ''}));
             }
         } finally {
             setIsLoading(false);
@@ -360,27 +361,6 @@ const UserAccountPage: React.FC = () => {
                     >
                         {user?.firstName?.charAt(0)}
                     </Avatar>
-                    <input
-                        accept="image/*"
-                        id="avatar-upload"
-                        type="file"
-                        style={{display: 'none'}}
-                        onChange={handleAvatarChange}
-                        disabled={isLoading}
-                        key={avatarFile ? 'file-selected' : 'no-file'}
-                    />
-                    <label htmlFor="avatar-upload">
-                        <Button
-                            variant="outlined"
-                            component="span"
-                            startIcon={<EditIcon/>}
-                            size="small"
-                            sx={{mt: 1}}
-                            disabled={isLoading}
-                        >
-                            Change
-                        </Button>
-                    </label>
                 </Box>
 
                 <Box className="profile-info">

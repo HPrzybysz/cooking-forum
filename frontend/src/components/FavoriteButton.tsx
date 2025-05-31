@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { IconButton } from '@mui/material';
+import React, {useState, useEffect} from 'react';
+import {IconButton} from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import api from '../api';
-import { useAuth } from '../context/AuthContext';
+import {useAuth} from '../context/AuthContext';
 
 interface FavoriteButtonProps {
     recipeId: number;
     size?: 'small' | 'medium' | 'large';
 }
 
-const FavoriteButton: React.FC<FavoriteButtonProps> = ({ recipeId, size = 'medium' }) => {
-    const { user } = useAuth();
+const FavoriteButton: React.FC<FavoriteButtonProps> = ({recipeId, size = 'medium'}) => {
+    const {user} = useAuth();
     const [isFavorite, setIsFavorite] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -53,7 +53,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({ recipeId, size = 'mediu
             size={size}
             color={isFavorite ? 'error' : 'default'}
         >
-            {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+            {isFavorite ? <FavoriteIcon/> : <FavoriteBorderIcon/>}
         </IconButton>
     );
 };

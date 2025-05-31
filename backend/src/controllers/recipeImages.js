@@ -7,7 +7,7 @@ exports.uploadImages = async (req, res) => {
             return res.status(400).json({ error: 'No images provided' });
         }
 
-        const recipeId = req.params.recipeId;
+        const recipe_id = req.params.recipeId;
         const isPrimary = req.body.isPrimary === 'true';
 
         await db.query('START TRANSACTION');
@@ -15,9 +15,9 @@ exports.uploadImages = async (req, res) => {
         const results = [];
         for (const [index, file] of req.files.entries()) {
             const imageId = await RecipeImage.create({
-                recipeId,
-                imageData: file.buffer,
-                isPrimary: index === 0 && isPrimary
+                recipe_id,
+                image_data: file.buffer,
+                is_primary: index === 0 && isPrimary
             });
             results.push({ id: imageId });
         }
@@ -37,31 +37,18 @@ exports.uploadImages = async (req, res) => {
 exports.getRecipeImages = async (req, res) => {
     try {
         const images = await RecipeImage.getByRecipeId(req.params.recipeId);
-
-        const formattedImages = images.map(image => ({
-            id: image.id,
-            recipe_id: image.recipe_id,
-            image_url: image.image_url || null,
-            image_data: image.image_data ? {
-                type: 'Buffer',
-                data: Array.from(image.image_data)
-            } : null,
-            is_primary: Boolean(image.is_primary),
-            created_at: image.created_at
-        }));
-
-        res.json(formattedImages);
+        res.json(images);
     } catch (error) {
-        res.status(500).json({error: error.message});
+        res.status(500).json({ error: error.message });
     }
 };
 
 exports.setPrimaryImage = async (req, res) => {
     try {
         await RecipeImage.setPrimaryImage(req.params.recipeId, req.params.imageId);
-        res.json({message: 'Image updated'});
+        res.json({ message: 'Primary image updated' });
     } catch (error) {
-        res.status(400).json({error: error.message});
+        res.status(400).json({ error: error.message });
     }
 };
 
@@ -69,40 +56,62 @@ exports.deleteImage = async (req, res) => {
     try {
         const deleted = await RecipeImage.delete(req.params.imageId);
         if (!deleted) {
-            return res.status(404).json({error: 'Image not found'});
+            return res.status(404).json({ error: 'Image not found' });
         }
-        res.json({message: 'Image deleted'});
+        res.json({ message: 'Image deleted' });
     } catch (error) {
-        res.status(500).json({error: error.message});
+        res.status(500).json({ error: error.message });
     }
 };
 
-exports.uploadImages = async (req, res) => {
+exports.preUploadImages = async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ error: 'No images provided' });
+            return res.status(400).json({ error: 'No files uploaded' });
+        }
+        res.status(200).json({
+            success: true,
+            files: req.files.map(file => ({
+                originalname: file.originalname,
+                size: file.size,
+                mimetype: file.mimetype
+            }))
+        });
+    } catch (error) {
+        console.error('Error validating images:', error);
+        res.status(500).json({ error: 'Failed to validate images' });
+    }
+};
+
+exports.finalizeImageUpload = async (req, res) => {
+    try {
+        const { recipeId } = req.params;
+        const files = req.files;
+
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'No files provided' });
         }
 
-        const isPrimary = req.body.isPrimary === 'true';
-        const recipeId = req.params.recipeId;
-
-        await db.execute('DELETE FROM recipe_images WHERE recipe_id = ?', [recipeId]);
+        await db.query('START TRANSACTION');
 
         const results = [];
-        for (const [index, file] of req.files.entries()) {
+        for (const [index, file] of files.entries()) {
             const imageId = await RecipeImage.create({
-                recipeId,
-                imageData: file.buffer,
-                isPrimary: index === 0 && isPrimary
+                recipe_id: recipeId,
+                image_data: file.buffer,
+                is_primary: index === 0
             });
             results.push({ id: imageId });
         }
 
+        await db.query('COMMIT');
         res.status(201).json({
-            message: 'Images uploaded successfully',
+            success: true,
             images: results
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        await db.query('ROLLBACK');
+        console.error('Error finalizing image upload:', error);
+        res.status(500).json({ error: 'Failed to finalize image upload' });
     }
 };

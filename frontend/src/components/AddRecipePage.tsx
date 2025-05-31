@@ -46,6 +46,11 @@ interface Category {
     name: string;
 }
 
+interface ImageValidationError {
+    fileName: string;
+    error: string;
+}
+
 const AddRecipePage: React.FC = () => {
     const navigate = useNavigate();
     const {user} = useAuth();
@@ -73,15 +78,49 @@ const AddRecipePage: React.FC = () => {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
     const [categoryLoading, setCategoryLoading] = useState(false);
+    const [imageErrors, setImageErrors] = useState<ImageValidationError[]>([]);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (imageErrors.length > 0) {
+            alert('Please fix image upload errors before submitting');
+            return;
+        }
+
+        if (!recipeData.prepTime || isNaN(Number(recipeData.prepTime))) {
+            alert('Please enter a valid preparation time');
+            return;
+        }
+
+        if (!recipeData.servings || isNaN(Number(recipeData.servings))) {
+            alert('Please enter a valid number of servings');
+            return;
+        }
+
         setLoading(true);
 
         try {
             if (!user) {
                 throw new Error('User not authenticated');
+            }
+
+            if (imageFiles.length > 0) {
+                const formData = new FormData();
+                // @ts-ignore
+                imageFiles.forEach((file, index) => {
+                    formData.append('images', file);
+                });
+
+                const validationResponse = await api.post('/api/recipes/images/pre-upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                if (!validationResponse.data.success) {
+                    throw new Error('Image validation failed');
+                }
             }
 
             const result = await createRecipe({
@@ -105,7 +144,6 @@ const AddRecipePage: React.FC = () => {
                 tags
             }, user.id);
 
-            // image uploads
             if (imageFiles.length > 0) {
                 const formData = new FormData();
                 imageFiles.forEach((file, index) => {
@@ -146,7 +184,7 @@ const AddRecipePage: React.FC = () => {
                     getTags()
                 ]);
                 setAvailableCategories(categories);
-                setAvailableTags(tags.map(tag => tag.name)); // Set available tags from backend
+                setAvailableTags(tags.map(tag => tag.name));
             } catch (error) {
                 console.error('Failed to load initial data', error);
             }
@@ -233,17 +271,73 @@ const AddRecipePage: React.FC = () => {
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            const files = Array.from(e.target.files).slice(0, 5 - images.length);
-            setImageFiles(prev => [...prev, ...files]);
+            const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+            const MAX_TOTAL_SIZE = 20 * 1024 * 1024; // 20MB total
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-            const newImages = files.map(file => URL.createObjectURL(file));
-            setImages(prev => [...prev, ...newImages]);
+            const newErrors: ImageValidationError[] = [];
+            const validFiles: File[] = [];
+            let totalSize = imageFiles.reduce((sum, file) => sum + file.size, 0);
+            let hasSizeError = false;
+
+            Array.from(e.target.files).forEach(file => {
+                if (file.size > MAX_FILE_SIZE) {
+                    newErrors.push({
+                        fileName: file.name,
+                        error: `File exceeds maximum size of ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+                    });
+                    hasSizeError = true;
+                } else if (!validTypes.includes(file.type)) {
+                    newErrors.push({
+                        fileName: file.name,
+                        error: 'Invalid file type. Only JPEG, PNG, and GIF are allowed'
+                    });
+                } else if (totalSize + file.size > MAX_TOTAL_SIZE) {
+                    newErrors.push({
+                        fileName: file.name,
+                        error: 'Total size of all images would exceed maximum limit'
+                    });
+                } else {
+                    validFiles.push(file);
+                    totalSize += file.size;
+                }
+            });
+
+            setImageErrors(newErrors);
+
+            if (hasSizeError) {
+                alert(`Some files exceed the maximum size limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB per file. Please upload smaller files.`);
+            }
+
+            if (validFiles.length > 0) {
+                const filesToAdd = validFiles.slice(0, 5 - images.length);
+                setImageFiles(prev => [...prev, ...filesToAdd]);
+
+                const newImages = filesToAdd.map(file => URL.createObjectURL(file));
+                setImages(prev => [...prev, ...newImages]);
+            }
         }
     };
 
     const handleRemoveImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setImageErrors(prev => prev.filter(err =>
+            !imageFiles[index] || err.fileName !== imageFiles[index].name
+        ));
     };
+
+    {
+        imageErrors.length > 0 && (
+            <Box sx={{color: 'error.main', mt: 1}}>
+                {imageErrors.map((err, index) => (
+                    <Typography key={index} variant="body2">
+                        {err.fileName}: {err.error}
+                    </Typography>
+                ))}
+            </Box>
+        )
+    }
 
     return (
         <Box className="add-recipe-page">
@@ -299,6 +393,9 @@ const AddRecipePage: React.FC = () => {
                     <Typography variant="h3" className="section-title">
                         Images (Max 5)
                     </Typography>
+                    <Typography variant="caption" sx={{display: 'block', mb: 1}}>
+                        Maximum file size: 10MB per image, 20MB total
+                    </Typography>
                     <Box className="image-upload-container">
                         {images.map((img, index) => (
                             <Box key={index} className="image-preview">
@@ -328,6 +425,15 @@ const AddRecipePage: React.FC = () => {
                             </Button>
                         )}
                     </Box>
+                    {imageErrors.length > 0 && (
+                        <Box sx={{color: 'error.main', mt: 1}}>
+                            {imageErrors.map((err, index) => (
+                                <Typography key={index} variant="body2">
+                                    {err.fileName}: {err.error}
+                                </Typography>
+                            ))}
+                        </Box>
+                    )}
                 </Box>
 
                 {/* Details */}
@@ -340,9 +446,18 @@ const AddRecipePage: React.FC = () => {
                             label="Preparation Time (minutes)"
                             name="prepTime"
                             value={recipeData.prepTime}
-                            onChange={handleInputChange}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === '' || /^[0-9\b]+$/.test(value)) {
+                                    setRecipeData(prev => ({
+                                        ...prev,
+                                        prepTime: value
+                                    }));
+                                }
+                            }}
                             type="number"
                             required
+                            inputProps={{min: 1, max: 999}}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
@@ -351,13 +466,23 @@ const AddRecipePage: React.FC = () => {
                                 ),
                             }}
                         />
+
                         <TextField
-                            label="Servings"
+                            label="Number of servings"
                             name="servings"
                             value={recipeData.servings}
-                            onChange={handleInputChange}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === '' || /^[0-9\b]+$/.test(value)) {
+                                    setRecipeData(prev => ({
+                                        ...prev,
+                                        servings: value
+                                    }));
+                                }
+                            }}
                             type="number"
                             required
+                            inputProps={{min: 1, max: 200}}
                         />
                         <FormControl fullWidth>
                             <InputLabel>Category</InputLabel>

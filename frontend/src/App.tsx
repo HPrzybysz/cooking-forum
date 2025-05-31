@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import {AuthProvider} from './context/AuthContext';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import SignUpPage from './components/SignupPage';
@@ -46,9 +46,9 @@ const AppRoutes = () => {
             <Route path="/category/:categoryId" element={<CategoryRecipesPage/>}/>
             <Route path="/recipe/:id" element={<RecipePage/>}/>
             <Route path="/add-recipe" element={<ProtectedRoute><AddRecipePage/></ProtectedRoute>}/>
-            <Route path="/reset-password" element={<PasswordResetRequest />} />
-            <Route path="/reset-password/:token" element={<PasswordResetForm />} />
-            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/reset-password" element={<PasswordResetRequest/>}/>
+            <Route path="/reset-password/:token" element={<PasswordResetForm/>}/>
+            <Route path="/favorites" element={<FavoritesPage/>}/>
         </Routes>
     );
 };
@@ -57,9 +57,9 @@ const App: React.FC = () => {
     return (
         <AuthProvider>
             <Router>
-                <Header />
-                <AuthModal />
-                <AppRoutes />
+                <Header/>
+                <AuthModal/>
+                <AppRoutes/>
             </Router>
         </AuthProvider>
     );

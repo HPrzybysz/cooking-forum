@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, CircularProgress, Alert } from '@mui/material';
+import React, {useState} from 'react';
+import {Box, TextField, Button, Typography, Paper, CircularProgress, Alert} from '@mui/material';
 import api from '../api';
-import { useNavigate, useParams } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const PasswordResetForm: React.FC = () => {
-    const { token } = useParams<{ token: string }>();
+    const {token} = useParams<{ token: string }>();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ const PasswordResetForm: React.FC = () => {
                 newPassword
             });
 
-            setSuccess('Password reset successfully!');
+            setSuccess('Password reset successfully! You will be redirected shortly.');
             setTimeout(() => navigate('/login'), 3000);
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to reset password');
@@ -40,14 +40,14 @@ const PasswordResetForm: React.FC = () => {
     }
 
     return (
-        <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
-            <Paper elevation={3} sx={{ p: 3 }}>
+        <Box sx={{maxWidth: 400, mx: 'auto', mt: 4}}>
+            <Paper elevation={3} sx={{p: 3}}>
                 <Typography variant="h5" gutterBottom>
                     Set New Password
                 </Typography>
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+                {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{mb: 2}}>{success}</Alert>}
 
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -72,10 +72,10 @@ const PasswordResetForm: React.FC = () => {
                         type="submit"
                         variant="contained"
                         fullWidth
-                        sx={{ mt: 2 }}
+                        sx={{mt: 2}}
                         disabled={loading}
                     >
-                        {loading ? <CircularProgress size={24} /> : 'Reset Password'}
+                        {loading ? <CircularProgress size={24}/> : 'Reset Password'}
                     </Button>
                 </form>
             </Paper>

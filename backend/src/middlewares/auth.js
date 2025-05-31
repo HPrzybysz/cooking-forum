@@ -1,4 +1,4 @@
-const { verifyToken } = require('../utils/encryption');
+const {verifyToken} = require('../utils/encryption');
 const logger = require('../utils/logger');
 const db = require('../config/db');
 
@@ -19,7 +19,7 @@ const auth = async (req, res, next) => {
             error: error.message,
             stack: error.stack
         });
-        res.status(401).send({ error: 'Please authenticate' });
+        res.status(401).send({error: 'Please authenticate'});
     }
 };
 

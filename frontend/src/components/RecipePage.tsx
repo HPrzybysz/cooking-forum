@@ -19,14 +19,14 @@ import {
 } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { RecipeStatistics } from './types';
+import {RecipeStatistics} from './types';
 import FavoriteButton from '../components/FavoriteButton';
 import RecipeRating from '../components/RecipeRating';
 import {getRecipe} from '../services/recipeService';
 import {getRecipeImages} from '../services/recipeImageService';
 import {getRecipeIngredients} from '../services/ingredientService';
 import {getRecipeSteps} from '../services/stepService';
-import { getImageUrl, getPrimaryImage, cleanupImageUrls } from '../utils/imageUtils';
+import {cleanupImageUrls} from '../utils/imageUtils';
 import api from "../api"
 import '../styles/RecipePage.scss';
 
@@ -140,7 +140,7 @@ const RecipePage: React.FC = () => {
                     getRecipeImages(id),
                     getRecipeIngredients(id),
                     getRecipeSteps(id),
-                    api.get(`/api/recipes/${id}/stats`).then(res => res.data)
+                    api.get(`/api/stats/${id}/stats`).then(res => res.data)
                 ]);
 
                 setRecipe({
@@ -221,7 +221,7 @@ const RecipePage: React.FC = () => {
     return (
         <Box className="recipe-page" sx={{maxWidth: 1200, mx: 'auto', p: {xs: 1, sm: 2, md: 3}}}>
             {/* Title and Description */}
-            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <Paper elevation={3} sx={{p: 3, mb: 3}}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                     <Box>
                         <Typography variant="h2" component="h1" gutterBottom>
@@ -232,8 +232,8 @@ const RecipePage: React.FC = () => {
                         </Typography>
                     </Box>
                     <Box display="flex" flexDirection="column" alignItems="flex-end" gap={1}>
-                        <FavoriteButton recipeId={recipe.id} size="large" />
-                        <RecipeRating recipeId={recipe.id} showAverage size="large" />
+                        <FavoriteButton recipeId={recipe.id} size="large"/>
+                        <RecipeRating recipeId={recipe.id} showAverage size="large"/>
                         {recipe.statistics && (
                             <Typography variant="body2" color="text.secondary">
                                 {recipe.statistics.favorite_count} favorites
@@ -290,26 +290,20 @@ const RecipePage: React.FC = () => {
             )}
 
             {/* Recipe Details */}
-            <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
-                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <AccessTimeIcon color="primary" sx={{ mr: 1 }} />
+            <Paper elevation={3} sx={{p: 2, mb: 3}}>
+                <Box sx={{display: 'flex', gap: 3, flexWrap: 'wrap'}}>
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                        <AccessTimeIcon color="primary" sx={{mr: 1}}/>
                         <Typography variant="body1">
                             {recipe.prep_time} minutes
                         </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <RestaurantIcon color="primary" sx={{ mr: 1 }} />
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                        <RestaurantIcon color="primary" sx={{mr: 1}}/>
                         <Typography variant="body1">
                             {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}
                         </Typography>
                     </Box>
-                    {/*<Box sx={{ display: 'flex', alignItems: 'center' }}>*/}
-                    {/*    <FavoriteIcon color="primary" sx={{ mr: 1 }} />*/}
-                    {/*    <Typography variant="body1">*/}
-                    {/*        {recipe.favorites || 0} favorites*/}
-                    {/*    </Typography>*/}
-                    {/*</Box>*/}
                 </Box>
             </Paper>
 
@@ -385,7 +379,7 @@ const RecipePage: React.FC = () => {
             )}
 
             {/* Footer */}
-            <Paper elevation={3} sx={{ p: 3 }}>
+            <Paper elevation={3} sx={{p: 3}}>
                 <Box sx={{
                     display: 'flex',
                     flexDirection: isMobile ? 'column' : 'row',
@@ -393,11 +387,11 @@ const RecipePage: React.FC = () => {
                     alignItems: isMobile ? 'flex-start' : 'center',
                     gap: 2
                 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
                         <Avatar
                             src={recipe.author.avatarUrl}
                             alt={`${recipe.author.firstName} ${recipe.author.lastName}`}
-                            sx={{ width: 56, height: 56 }}
+                            sx={{width: 56, height: 56}}
                         />
                         <Box>
                             <Typography variant="body1" fontWeight="medium">

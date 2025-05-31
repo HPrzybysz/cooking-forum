@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import api from '../api';
 
 export interface User {
@@ -24,9 +24,10 @@ interface AuthContextType {
     refreshToken: () => Promise<void>;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -86,8 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const response = await api.post('/api/auth/login', { email, password });
-            const { user: backendUser, token } = response.data;
+            const response = await api.post('/api/auth/login', {email, password});
+            const {user: backendUser, token} = response.data;
             const transformedUser = transformUser(backendUser);
 
             localStorage.setItem('token', token);
@@ -122,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email,
                 password,
             });
-            const { user: backendUser, token } = response.data;
+            const {user: backendUser, token} = response.data;
             const transformedUser = transformUser(backendUser);
 
             localStorage.setItem('token', token);
@@ -157,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const value = { user, token, isLoading, login, register, logout, refreshToken, setUser };
+    const value = {user, token, isLoading, login, register, logout, refreshToken, setUser};
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

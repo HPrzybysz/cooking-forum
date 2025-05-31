@@ -18,4 +18,5 @@ router.get('/:recipeId/ingredients', ingredientsController.getIngredients);
 router.post('/:recipeId/ingredients', auth, ingredientsController.createIngredient);
 router.delete('/:recipeId/ingredients', auth, ingredientsController.deleteAllIngredients);
 
+
 module.exports = router;

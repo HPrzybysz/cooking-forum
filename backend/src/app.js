@@ -14,6 +14,8 @@ const recipeImagesRoutes = require('./routes/recipeImages');
 const recipeRatingsRoutes = require('./routes/recipeRatings');
 const favoritesRoutes = require('./routes/favorites');
 const recipeComponentsRoutes = require('./routes/recipeComponents');
+const cron = require('node-cron');
+const Favorite = require('./models/Favorite');
 const path = require('path');
 
 const app = express();
@@ -31,6 +33,13 @@ app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
 
+//recipe sync
+cron.schedule('* * * * *', async () => {
+    console.log('Running favorite count sync...');
+    await Favorite.syncFavoriteCounts();
+    console.log('Favorite count sync completed');
+});
+
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -42,7 +51,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api', recipeComponentsRoutes);
-app.use('/api', statsRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api', stepsRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api', recipeImagesRoutes);
@@ -56,6 +65,10 @@ app.use(errorHandler);
 
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server probably running on port ${PORT}`);
-});
+
+if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`Server probably running on port ${PORT}`);
+    });
+}

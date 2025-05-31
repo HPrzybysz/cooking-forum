@@ -14,8 +14,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
 import SignUpPage from "./SignupPage.tsx";
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
+import {useNavigate} from 'react-router-dom';
 
 const backgroundImages = [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop',
@@ -44,7 +44,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess, onSignupS
     });
     const [showSignUp, setShowSignUp] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { login, isLoading } = useAuth();
+    const {login, isLoading} = useAuth();
     const navigate = useNavigate();
 
     const BlackBackgroundLayer = () => (
@@ -219,7 +219,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess, onSignupS
                                         onClick={() => navigate('/reset-password')}
                                         variant="body2"
                                         color="primary"
-                                        sx={{ cursor: 'pointer' }}
+                                        sx={{cursor: 'pointer'}}
                                     >
                                         Forgot your password?
                                     </Link>

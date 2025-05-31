@@ -1,4 +1,5 @@
 const Favorite = require('../models/Favorite');
+const RecipeStatistic = require('../models/RecipeStatistic');
 
 exports.addFavorite = async (req, res) => {
     try {
@@ -13,6 +14,15 @@ exports.removeFavorite = async (req, res) => {
     try {
         await Favorite.removeFavorite(req.userId, req.params.recipeId);
         res.json({message: 'Recipe removed from favorites'});
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+};
+
+exports.syncFavoriteCounts = async (req, res) => {
+    try {
+        await Favorite.syncFavoriteCounts();
+        res.json({message: 'Favorite counts synchronized successfully'});
     } catch (error) {
         res.status(500).json({error: error.message});
     }

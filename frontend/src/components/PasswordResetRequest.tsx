@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, CircularProgress, Alert } from '@mui/material';
+import React, {useState} from 'react';
+import {Box, TextField, Button, Typography, Paper, CircularProgress, Alert} from '@mui/material';
 import api from '../api';
 
 const PasswordResetRequest: React.FC = () => {
@@ -15,7 +15,7 @@ const PasswordResetRequest: React.FC = () => {
         setSuccess(null);
 
         try {
-            await api.post('/api/auth/request-password-reset', { email });
+            await api.post('/api/auth/request-password-reset', {email});
             setSuccess('If the email exists, a reset link has been sent');
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to send reset email');
@@ -25,17 +25,17 @@ const PasswordResetRequest: React.FC = () => {
     };
 
     return (
-        <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
-            <Paper elevation={3} sx={{ p: 3 }}>
+        <Box sx={{maxWidth: 400, mx: 'auto', mt: 4}}>
+            <Paper elevation={3} sx={{p: 3}}>
                 <Typography variant="h5" gutterBottom>
                     Reset Password
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
+                <Typography variant="body1" sx={{mb: 2}}>
                     Enter your email to receive a password reset link
                 </Typography>
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+                {error && <Alert severity="error" sx={{mb: 2}}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{mb: 2}}>{success}</Alert>}
 
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -51,10 +51,10 @@ const PasswordResetRequest: React.FC = () => {
                         type="submit"
                         variant="contained"
                         fullWidth
-                        sx={{ mt: 2 }}
+                        sx={{mt: 2}}
                         disabled={loading}
                     >
-                        {loading ? <CircularProgress size={24} /> : 'Send Reset Link'}
+                        {loading ? <CircularProgress size={24}/> : 'Send Reset Link'}
                     </Button>
                 </form>
             </Paper>

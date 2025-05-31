@@ -1,44 +1,96 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import SearchBar from './SearchBar';
+import React, {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
 import PopularSlider from './PopularSlider';
 import '../styles/HomePage.scss';
+import {Recipe, RecipeImage} from './types';
+import api from '../api';
+import {getRecipeImages} from "../services/recipeImageService.ts";
+import {getImageUrl} from "../utils/imageUtils.ts";
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
+    const [featuredRecipe, setFeaturedRecipe] = useState<Recipe | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [featuredImages, setFeaturedImages] = useState<RecipeImage[]>([]);
+    // @ts-ignore
+    const [imageLoading, setImageLoading] = useState(true);
 
-    const featuredRecipe = {
-        id: '1',
-        title: 'Featured Recipe',
-        imageUrl: 'https://placehold.co/600x400',
-        author: {
-            name: 'Chef Name',
-            avatarUrl: 'https://placehold.co/100'
-        },
-        description: 'This is a description of the featured recipe...'
-    };
+    useEffect(() => {
+        const fetchFeaturedRecipe = async () => {
+            try {
+                const response = await api.get('/api/stats/popular?limit=10');
+                const popularRecipes = response.data;
 
-    const placeholderImages: string[] = Array(5).fill('https://placehold.co/150x150');
+                if (popularRecipes.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * popularRecipes.length);
+                    setFeaturedRecipe(popularRecipes[randomIndex]);
+                }
+            } catch (err) {
+                setError('Failed to load featured recipe');
+                console.error('Error fetching featured recipe:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFeaturedRecipe();
+    }, []);
+
+    useEffect(() => {
+        if (featuredRecipe) {
+            const fetchImages = async () => {
+                try {
+                    const fetchedImages = await getRecipeImages(featuredRecipe.id.toString());
+                    setFeaturedImages(fetchedImages);
+                } catch (error) {
+                    console.error('Error fetching images:', error);
+                } finally {
+                    setImageLoading(false);
+                }
+            };
+            fetchImages();
+        }
+    }, [featuredRecipe]);
 
     const handleReadMore = () => {
-        navigate(`/recipe/${featuredRecipe.id}`);
+        if (featuredRecipe) {
+            navigate(`/recipe/${featuredRecipe.id}`);
+        }
     };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    if (!featuredRecipe) {
+        return <div>No featured recipe available</div>;
+    }
 
     return (
         <main className="main-content">
-            <SearchBar />
             <section className="featured-recipe">
                 <h2>Recipe of the day</h2>
                 <div className="featured-content">
                     <div className="left">
-                        <img id="dish" src={featuredRecipe.imageUrl} alt="Dish Image" />
-                        <hr />
-                        <img id="user" src={featuredRecipe.author.avatarUrl} alt="user" />
-                        <h6>{featuredRecipe.author.name}</h6>
+                        <img
+                            id="dish"
+                            // @ts-ignore
+                            src={getImageUrl(featuredImages.find(img => img.is_primary) || featuredImages[0])}
+                            alt="Dish Image"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/600x400';
+                            }}
+                        />
+                        <hr/>
                     </div>
                     <div className="right">
                         <h1 className="featured-recipe__title">{featuredRecipe.title}</h1>
-                        <hr />
+                        <hr/>
                         <p id="description">
                             {featuredRecipe.description}
                         </p>
@@ -52,7 +104,7 @@ const HomePage: React.FC = () => {
                 </div>
             </section>
             <section className="popular-recipes">
-                <PopularSlider images={placeholderImages} />
+                <PopularSlider/>
             </section>
         </main>
     );

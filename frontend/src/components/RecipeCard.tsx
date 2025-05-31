@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import '../styles/RecipeCard.scss';
 import FavoriteButton from './FavoriteButton';
 import RecipeRating from './RecipeRating';
-import { getRecipeImages } from '../services/recipeImageService';
-import { RecipeImage } from '../services/recipeImageService';
+import {getRecipeImages} from '../services/recipeImageService';
+import {RecipeImage} from '../services/recipeImageService';
 
 interface RecipeCardProps {
     recipeId: number;
@@ -47,18 +47,14 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
     const getImageUrl = (image?: RecipeImage): string => {
         if (!image) return 'https://placehold.co/600x400?text=No+Image';
 
-        try {
-            if (image.image_data) {
-                const base64String = btoa(
-                    String.fromCharCode(...new Uint8Array(image.image_data.data))
-                );
-                return `data:image/${image.image_data.type || 'jpeg'};base64,${base64String}`;
-            }
-            return image.image_url || 'https://placehold.co/600x400?text=No+Image';
-        } catch (error) {
-            console.error('Error processing image:', error);
-            return 'https://placehold.co/600x400?text=Error';
+        if (image.image_data) {
+            const base64String = btoa(
+                String.fromCharCode(...new Uint8Array(image.image_data.data))
+            );
+            return `data:image/jpeg;base64,${base64String}`;
         }
+
+        return image.image_url || 'https://placehold.co/600x400?text=No+Image';
     };
 
 
@@ -66,7 +62,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         return (
             <div className="recipe-card">
                 <div className="recipe-card__image-container">
-                    <div className="image-placeholder" />
+                    <div className="image-placeholder"/>
                 </div>
                 <div className="recipe-card__content">
                     <h3 className="recipe-card__title">{title}</h3>
@@ -94,13 +90,13 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 
                 {showRating && (
                     <div className="recipe-card__rating">
-                        <RecipeRating recipeId={recipeId} size="small" />
+                        <RecipeRating recipeId={recipeId} size="small"/>
                     </div>
                 )}
 
                 {showFavoriteButton && (
                     <div className="recipe-card__favorite">
-                        <FavoriteButton recipeId={recipeId} size="small" />
+                        <FavoriteButton recipeId={recipeId} size="small"/>
                         {statistics?.favorite_count !== undefined && (
                             <span className="favorite-count">
                                 {statistics.favorite_count}
