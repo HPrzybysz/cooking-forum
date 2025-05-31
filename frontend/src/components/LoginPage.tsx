@@ -14,6 +14,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
 import SignUpPage from "./SignupPage.tsx";
+import {useAuth} from '../context/AuthContext';
+import {useNavigate} from 'react-router-dom';
 
 const backgroundImages = [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop',
@@ -30,9 +32,10 @@ interface LoginForm {
 interface LoginPageProps {
     onClose: () => void;
     onLoginSuccess: () => void;
+    onSignupSuccess?: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
+const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess, onSignupSuccess}) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const [formData, setFormData] = useState<LoginForm>({
@@ -40,8 +43,9 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
         password: ''
     });
     const [showSignUp, setShowSignUp] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const {login, isLoading} = useAuth();
+    const navigate = useNavigate();
 
     const BlackBackgroundLayer = () => (
         <Box sx={{
@@ -78,23 +82,21 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        setIsLoading(true);
 
         try {
-            //sim API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // mock cred valid.
-            if (formData.email && formData.password.length >= 6) {
-                onLoginSuccess();
-                onClose();
-            } else {
-                throw new Error('Invalid email or password');
-            }
+            await login(formData.email, formData.password);
+            onLoginSuccess();
+            onClose();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Login failed');
-        } finally {
-            setIsLoading(false);
+            setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+        }
+    };
+
+    const handleSwitchToSignup = () => {
+        if (onSignupSuccess) {
+            setShowSignUp(true);
+        } else {
+            navigate('/signup');
         }
     };
 
@@ -105,7 +107,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                 <SignUpPage
                     onClose={onClose}
                     switchToLogin={() => setShowSignUp(false)}
-                    onSignupSuccess={onLoginSuccess}
+                    onSignupSuccess={onSignupSuccess}
                 />
             ) : (
                 <Box className="login-page-container">
@@ -213,7 +215,12 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                                 />
 
                                 <Box className="forgot-password-link">
-                                    <Link href="#" variant="body2" color="primary">
+                                    <Link
+                                        onClick={() => navigate('/reset-password')}
+                                        variant="body2"
+                                        color="primary"
+                                        sx={{cursor: 'pointer'}}
+                                    >
                                         Forgot your password?
                                     </Link>
                                 </Box>
@@ -244,7 +251,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                                     Don't have an account?{' '}
                                     <Link
                                         className="switch-link"
-                                        onClick={() => setShowSignUp(true)}
+                                        onClick={handleSwitchToSignup}
                                         sx={{cursor: 'pointer'}}
                                     >
                                         Sign up

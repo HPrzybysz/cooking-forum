@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
+import {useAuth} from '../context/AuthContext';
 
 const backgroundImages = [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop',
@@ -47,7 +48,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignup
         acceptTerms: false
     });
     const [errors, setErrors] = useState<Partial<SignUpForm>>({});
-    const [isLoading, setIsLoading] = useState(false);
+    const {register, isLoading} = useAuth();
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
@@ -97,7 +98,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignup
             [name]: name === 'acceptTerms' ? checked : value
         }));
 
-        // Clear error when user starts typing
         if (errors[name as keyof SignUpForm]) {
             setErrors(prev => ({...prev, [name]: undefined}));
         }
@@ -109,24 +109,24 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignup
 
         if (!validateForm()) return;
 
-        setIsLoading(true);
-
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // In a real app, you would call your signup API here
-            console.log('Sign Up submitted:', formData);
-
-            // Call success handler if provided
+            await register(
+                formData.firstName,
+                formData.lastName,
+                formData.email,
+                formData.password
+            );
             onSignupSuccess?.();
             onClose();
         } catch (error) {
-            setSubmitError('Signup failed. Please try again.');
-        } finally {
-            setIsLoading(false);
+            setSubmitError(
+                error instanceof Error
+                    ? error.message
+                    : 'Signup failed. Please try again.'
+            );
         }
     };
+
 
     const BlackBackgroundLayer = () => (
         <Box sx={{

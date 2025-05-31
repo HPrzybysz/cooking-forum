@@ -60,6 +60,9 @@ exports.login = async (req, res) => {
         );
 
         logger.info(`User logged in: ${email}`);
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+
         res.json({
             user: {
                 id: user.id,
@@ -68,15 +71,12 @@ exports.login = async (req, res) => {
                 email: user.email,
                 avatarUrl: user.avatar_url
             },
-            token,
-            refreshToken
+            token
         });
     } catch (error) {
-        logger.error('Login failed', {
-            error: error.message,
-            stack: error.stack
-        });
-        res.status(500).json({error: 'Login failed'});
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.status(401).json({error: 'Invalid credentials'});
     }
 };
 
@@ -161,7 +161,53 @@ exports.requestPasswordReset = async (req, res) => {
         res.status(500).json({error: 'Error processing password reset request'});
     }
 };
+// uses old passwrod
+exports.changePassword = async (req, res) => {
+    try {
+        const {currentPassword, newPassword} = req.body;
 
+        // Validation
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({error: 'Both current and new password are required'});
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({error: 'New password must be at least 8 characters'});
+        }
+
+        // Get full user with password hash
+        const user = await User.getProfile(req.userId);
+        if (!user) {
+            return res.status(404).json({error: 'User not found'});
+        }
+
+        // Verify current password
+        const isPasswordValid = await User.verifyPassword(user, currentPassword);
+        if (!isPasswordValid) {
+            return res.status(401).json({error: 'Current password is incorrect'});
+        }
+
+        // Update password
+        await User.updatePassword(req.userId, newPassword);
+
+        logger.info(`Password changed for user ${req.userId}`);
+        return res.json({message: 'Password changed successfully'});
+
+    } catch (error) {
+        logger.error('Password change failed', {
+            error: error.message,
+            stack: error.stack,
+            userId: req.userId
+        });
+
+        if (error.message.includes('Invalid arguments')) {
+            return res.status(400).json({error: 'Invalid password data'});
+        }
+        return res.status(500).json({error: 'Failed to change password'});
+    }
+};
+
+// Password reset (uses token)
 exports.resetPassword = async (req, res) => {
     try {
         const {token, newPassword} = req.body;
@@ -176,20 +222,14 @@ exports.resetPassword = async (req, res) => {
 
         const resetToken = await PasswordResetToken.findByToken(token);
         if (!resetToken) {
-            logger.warn('Invalid password reset token attempt');
             return res.status(400).json({error: 'Invalid or expired token'});
         }
 
         await User.updatePassword(resetToken.user_id, newPassword);
         await PasswordResetToken.markAsUsed(token);
-
-        logger.info(`Password reset for user ID: ${resetToken.user_id}`);
-        res.json({message: 'Password updated successfully'});
+        return res.json({message: 'Password reset successfully'});
     } catch (error) {
-        logger.error('Password reset failed', {
-            error: error.message,
-            stack: error.stack
-        });
+        logger.error('Password reset failed', error);
         res.status(500).json({error: 'Error resetting password'});
     }
 };
@@ -201,13 +241,24 @@ exports.logout = async (req, res) => {
             await RefreshToken.deleteAllForUser(req.userId);
             logger.info(`User logged out: ${req.userId}`);
         }
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.json({message: 'Logged out successfully'});
     } catch (error) {
-        logger.error('Logout failed', {
-            error: error.message,
-            stack: error.stack,
-            userId: req.userId
-        });
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.status(500).json({error: 'Logout failed'});
+    }
+};
+
+exports.getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.getProfile(req.userId);
+        if (!user) {
+            return res.status(404).json({error: 'User not found'});
+        }
+        res.json({user});
+    } catch (error) {
+        res.status(500).json({error: 'Error fetching user'});
     }
 };

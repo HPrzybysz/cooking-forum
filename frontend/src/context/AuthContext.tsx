@@ -1,0 +1,172 @@
+import React, {createContext, useContext, useEffect, useState} from 'react';
+import api from '../api';
+
+export interface User {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+}
+
+interface AuthContextType {
+    user: User | null;
+    token: string | null;
+    isLoading: boolean;
+    login: (email: string, password: string) => Promise<User>;
+    register: (
+        firstName: string,
+        lastName: string,
+        email: string,
+        password: string
+    ) => Promise<User>;
+    logout: () => Promise<void>;
+    refreshToken: () => Promise<void>;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const transformUser = (backendUser: any): User => ({
+        id: backendUser.id,
+        firstName: backendUser.first_name,
+        lastName: backendUser.last_name,
+        email: backendUser.email,
+        avatarUrl: backendUser.avatar_url
+    });
+
+    const refreshToken = async () => {
+        try {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                const response = await api.post('/api/auth/refresh', {}, {
+                    headers: {
+                        Authorization: `Bearer ${storedToken}`
+                    }
+                });
+                const newToken = response.data.token;
+                localStorage.setItem('token', newToken);
+                api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+                setToken(newToken);
+            }
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            logout();
+        }
+    };
+
+    useEffect(() => {
+        const initializeAuth = async () => {
+            try {
+                const storedToken = localStorage.getItem('token');
+                if (storedToken) {
+                    api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+                    const response = await api.get('/api/users/me');
+                    setUser(transformUser(response.data));
+                    setToken(storedToken);
+                }
+            } catch (error) {
+                localStorage.removeItem('token');
+                delete api.defaults.headers.common['Authorization'];
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        initializeAuth();
+
+        const interval = setInterval(refreshToken, 30 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const login = async (email: string, password: string) => {
+        setIsLoading(true);
+        try {
+            const response = await api.post('/api/auth/login', {email, password});
+            const {user: backendUser, token} = response.data;
+            const transformedUser = transformUser(backendUser);
+
+            localStorage.setItem('token', token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            setUser(transformedUser);
+            setToken(token);
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+
+            return transformedUser;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.error || 'Login failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const register = async (
+        firstName: string,
+        lastName: string,
+        email: string,
+        password: string
+    ) => {
+        setIsLoading(true);
+        try {
+            const response = await api.post('/api/auth/register', {
+                firstName,
+                lastName,
+                email,
+                password,
+            });
+            const {user: backendUser, token} = response.data;
+            const transformedUser = transformUser(backendUser);
+
+            localStorage.setItem('token', token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            setUser(transformedUser);
+            setToken(token);
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+
+            return transformedUser;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.error || 'Registration failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await api.post('/api/auth/logout', {}, {
+                withCredentials: true
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            localStorage.removeItem('token');
+            delete api.defaults.headers.common['Authorization'];
+            setUser(null);
+            setToken(null);
+        }
+    };
+
+    const value = {user, token, isLoading, login, register, logout, refreshToken, setUser};
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};

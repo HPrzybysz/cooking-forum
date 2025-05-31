@@ -1,36 +1,32 @@
 const db = require('../config/db');
 
 class RecipeImage {
-    static async create({ recipeId, imageUrl = null, imageData = null, isPrimary = false }) {
-        if (!imageUrl && !imageData) {
-            throw new Error('Either imageUrl or imageData must be provided');
-        }
-
+    static async create({recipe_id, image_data, is_primary = false}) {
         const [result] = await db.execute(
-            'INSERT INTO recipe_images (recipe_id, image_url, image_data, is_primary) VALUES (?, ?, ?, ?)',
-            [recipeId, imageUrl, imageData, isPrimary]
+            'INSERT INTO recipe_images (recipe_id, image_data, is_primary) VALUES (?, ?, ?)',
+            [recipe_id, image_data, is_primary]
         );
         return result.insertId;
     }
 
-    static async getByRecipeId(recipeId) {
+    static async getByRecipeId(recipe_id) {
         const [rows] = await db.execute(
-            'SELECT * FROM recipe_images WHERE recipe_id = ? ORDER BY is_primary DESC',
-            [recipeId]
+            'SELECT id, recipe_id, image_data, is_primary, created_at FROM recipe_images WHERE recipe_id = ? ORDER BY is_primary DESC',
+            [recipe_id]
         );
         return rows;
     }
 
-    static async setPrimaryImage(recipeId, imageId) {
+    static async setPrimaryImage(recipe_id, image_id) {
         await db.query('START TRANSACTION');
         try {
             await db.execute(
                 'UPDATE recipe_images SET is_primary = FALSE WHERE recipe_id = ?',
-                [recipeId]
+                [recipe_id]
             );
             await db.execute(
                 'UPDATE recipe_images SET is_primary = TRUE WHERE id = ? AND recipe_id = ?',
-                [imageId, recipeId]
+                [image_id, recipe_id]
             );
             await db.query('COMMIT');
             return true;
@@ -40,10 +36,18 @@ class RecipeImage {
         }
     }
 
-    static async delete(imageId) {
+    static async delete(image_id) {
         const [result] = await db.execute(
             'DELETE FROM recipe_images WHERE id = ?',
-            [imageId]
+            [image_id]
+        );
+        return result.affectedRows > 0;
+    }
+
+    static async deleteAllForRecipe(recipe_id) {
+        const [result] = await db.execute(
+            'DELETE FROM recipe_images WHERE recipe_id = ?',
+            [recipe_id]
         );
         return result.affectedRows > 0;
     }

@@ -1,29 +1,29 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import '../styles/Header.scss';
 import logo from '../assets/logo.png';
 import {Button, Menu, MenuItem, Avatar} from '@mui/material';
-
 import {useNavigate} from 'react-router-dom';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import AddIcon from "@mui/icons-material/Add";
 import LoginIcon from '@mui/icons-material/LogIn';
+import {useAuth} from '../context/AuthContext';
 
-interface HeaderProps {
-    onLoginClick: () => void;
-    onLogoutClick: () => void;
-    isLoggedIn: boolean;
-    user?: {
-        name: string;
-        email: string;
-        avatarUrl?: string;
-    };
-}
-
-const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn, user}) => {
+const Header: React.FC = () => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const {user, logout, isLoading} = useAuth();
+    const [displayName, setDisplayName] = React.useState('My Account');
+
+    useEffect(() => {
+        if (user?.firstName) {
+            setDisplayName(user.firstName);
+        } else {
+            setDisplayName('My Account');
+        }
+    }, [user]);
+
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -34,10 +34,10 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
     };
 
     const handleAddRecipeClick = () => {
-        if (isLoggedIn) {
+        if (user) {
             navigate('/add-recipe');
         } else {
-            onLoginClick();
+            navigate('/login');
         }
     };
 
@@ -46,11 +46,21 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
         handleMenuClose();
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
+
+
     return (
         <header className="header">
             <div className="container header__container">
                 <div className="header__logo">
-                    <img src={logo} alt="Cooking Forum Logo"/>
+                    <img src={logo} alt="Cooking Forum Logo" onClick={() => navigate('/')} style={{cursor: 'pointer'}}/>
                 </div>
                 <nav className="header__nav">
                     <ul>
@@ -81,11 +91,12 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                         backgroundColor: '#D48A08'
                                     }
                                 }}
+                                disabled={isLoading}
                             >
                                 Add Recipe
                             </Button>
                         </li>
-                        {isLoggedIn ? (
+                        {user ? (
                             <li>
                                 <Button
                                     variant="outlined"
@@ -93,10 +104,10 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                     size="medium"
                                     startIcon={
                                         <Avatar
-                                            src={user?.avatarUrl}
+                                            src={user.avatarUrl}
                                             sx={{width: 24, height: 24}}
                                         >
-                                            {user?.name.charAt(0)}
+                                            {user.firstName?.charAt(0)}
                                         </Avatar>
                                     }
                                     onClick={handleMenuOpen}
@@ -107,8 +118,9 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                             color: '#F59E0B'
                                         }
                                     }}
+                                    disabled={isLoading}
                                 >
-                                    {user?.name || 'My Account'}
+                                    {displayName}
                                 </Button>
                                 <Menu
                                     anchorEl={anchorEl}
@@ -123,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                         <FavoriteIcon sx={{mr: 1}}/>
                                         My Favorites
                                     </MenuItem>
-                                    <MenuItem onClick={onLogoutClick}>
+                                    <MenuItem onClick={handleLogout}>
                                         <ExitToAppIcon sx={{mr: 1}}/>
                                         Logout
                                     </MenuItem>
@@ -136,7 +148,8 @@ const Header: React.FC<HeaderProps> = ({onLoginClick, onLogoutClick, isLoggedIn,
                                     color="inherit"
                                     size="medium"
                                     endIcon={<LoginIcon/>}
-                                    onClick={onLoginClick}
+                                    onClick={() => navigate('/login')}
+                                    disabled={isLoading}
                                     sx={{
                                         textTransform: 'none',
                                         fontSize: '1rem',

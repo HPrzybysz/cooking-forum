@@ -59,8 +59,16 @@ exports.deleteCategory = async (req, res) => {
 
 exports.getRecipesByCategory = async (req, res) => {
     try {
+        const category = await Category.getById(req.params.id);
+        if (!category) {
+            return res.status(404).json({ error: 'Category not found' });
+        }
+
         const recipes = await Category.getRecipesByCategory(req.params.id);
-        res.json(recipes);
+        res.json({
+            recipes,
+            categoryName: category.name
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

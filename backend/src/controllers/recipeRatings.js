@@ -18,8 +18,18 @@ exports.submitRating = async (req, res) => {
 exports.getRecipeRatings = async (req, res) => {
     try {
         const ratings = await RecipeRating.getByRecipeId(req.params.recipeId);
-        const average = await RecipeRating.getAverageRating(req.params.recipeId);
-        res.json({ ratings, average });
+
+        let average = 0;
+        if (ratings.length > 0) {
+            const sum = ratings.reduce((total, rating) => total + rating.rating, 0);
+            average = sum / ratings.length;
+        }
+
+        res.json({
+            ratings,
+            average: parseFloat(average.toFixed(2)),
+            count: ratings.length
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

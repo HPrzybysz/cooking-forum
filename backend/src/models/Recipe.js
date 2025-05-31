@@ -2,12 +2,25 @@ const db = require('../config/db');
 
 class Recipe {
     static async create({userId, title, description, prepTime, servings, equipment, authorNote, categoryId}) {
-        const [result] = await db.execute(
-            'INSERT INTO recipes (user_id, title, description, prep_time, servings, equipment, author_note, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [userId, title, description, prepTime, servings, equipment, authorNote, categoryId]
-        );
-        return result.insertId;
+        await db.query('START TRANSACTION');
+        try {
+            equipment = equipment !== undefined ? equipment : null;
+            authorNote = authorNote !== undefined ? authorNote : null;
+            categoryId = categoryId !== undefined ? categoryId : null;
+
+            const [result] = await db.execute(
+                'INSERT INTO recipes (user_id, title, description, prep_time, servings, equipment, author_note, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [userId, title, description, prepTime, servings, equipment, authorNote, categoryId]
+            );
+
+            await db.query('COMMIT');
+            return result.insertId;
+        } catch (error) {
+            await db.query('ROLLBACK');
+            throw error;
+        }
     }
+
 
     static async getById(id) {
         const [rows] = await db.execute(

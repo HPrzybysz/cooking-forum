@@ -21,6 +21,9 @@ class User {
     }
 
     static async verifyPassword(user, password) {
+        if (!user || !user.password_hash || !password) {
+            throw new Error('Invalid arguments for password verification');
+        }
         return await bcrypt.compare(password, user.password_hash);
     }
 
@@ -30,7 +33,7 @@ class User {
 
     static async getProfile(userId) {
         const [rows] = await db.execute(
-            'SELECT id, first_name, last_name, email, avatar_url FROM users WHERE id = ?',
+            'SELECT id, first_name, last_name, email, password_hash, avatar_url FROM users WHERE id = ?',
             [userId]
         );
         return rows[0];
