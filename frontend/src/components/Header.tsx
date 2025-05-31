@@ -10,14 +10,20 @@ import AddIcon from "@mui/icons-material/Add";
 import LoginIcon from '@mui/icons-material/LogIn';
 import {useAuth} from '../context/AuthContext';
 
-const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
+const Header: React.FC = () => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const {user, logout, isLoading} = useAuth();
+    const [displayName, setDisplayName] = React.useState('My Account');
 
-    useEffect(() =>{
-
+    useEffect(() => {
+        if (user?.firstName) {
+            setDisplayName(user.firstName);
+        } else {
+            setDisplayName('My Account');
+        }
     }, [user]);
+
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -31,7 +37,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
         if (user) {
             navigate('/add-recipe');
         } else {
-            onLoginClick();
+            navigate('/login');
         }
     };
 
@@ -115,7 +121,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
                                     }}
                                     disabled={isLoading}
                                 >
-                                    {user.firstName || 'My Account'}
+                                    {displayName}
                                 </Button>
                                 <Menu
                                     anchorEl={anchorEl}
@@ -143,7 +149,7 @@ const Header: React.FC<{ onLoginClick: () => void }> = ({onLoginClick}) => {
                                     color="inherit"
                                     size="medium"
                                     endIcon={<LoginIcon/>}
-                                    onClick={onLoginClick}
+                                    onClick={() => navigate('/login')}
                                     disabled={isLoading}
                                     sx={{
                                         textTransform: 'none',

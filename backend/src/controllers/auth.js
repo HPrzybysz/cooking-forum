@@ -82,25 +82,25 @@ exports.login = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
     try {
-        const {refreshToken} = req.body;
+        const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(400).json({error: 'Refresh token is required'});
+            return res.status(400).json({ error: 'Refresh token is required' });
         }
 
         const storedToken = await RefreshToken.findByToken(refreshToken);
         if (!storedToken || new Date(storedToken.expires_at) < new Date()) {
             logger.warn('Invalid refresh token attempt');
-            return res.status(401).json({error: 'Invalid or expired refresh token'});
+            return res.status(401).json({ error: 'Invalid or expired refresh token' });
         }
 
         const user = await User.getProfile(storedToken.user_id);
         if (!user) {
             logger.error('User not found for refresh token');
-            return res.status(404).json({error: 'User not found'});
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        const newToken = generateToken({id: user.id});
+        const newToken = generateToken({ id: user.id });
         const newRefreshToken = await RefreshToken.create(
             user.id,
             new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
@@ -119,23 +119,24 @@ exports.refreshToken = async (req, res) => {
             error: error.message,
             stack: error.stack
         });
-        res.status(500).json({error: 'Token refresh failed'});
+        res.status(500).json({ error: 'Token refresh failed' });
     }
 };
 
 exports.requestPasswordReset = async (req, res) => {
     try {
-        const {email} = req.body;
+        const { email } = req.body;
 
         if (!email) {
             logger.warn('Password reset requested without email');
-            return res.status(400).json({error: 'Email is required'});
+            return res.status(400).json({ error: 'Email is required' });
         }
 
         const user = await User.findByEmail(email);
         if (!user) {
+            // Return success to prevent email enumeration
             logger.info(`Password reset requested for non-existent email: ${email}`);
-            return res.json({message: 'If the email exists, a reset link has been sent'});
+            return res.json({ message: 'If the email exists, a reset link has been sent' });
         }
 
         const token = await PasswordResetToken.create(
@@ -146,51 +147,91 @@ exports.requestPasswordReset = async (req, res) => {
         const emailSent = await sendPasswordResetEmail(email, token);
 
         if (!emailSent) {
-            logger.error('Failed to send password reset email', {email});
+            logger.error('Failed to send password reset email', { email });
             throw new Error('Failed to send password reset email');
         }
 
         logger.info(`Password reset email sent to ${email}`);
-        res.json({message: 'If the email exists, a reset link has been sent'});
+        res.json({ message: 'If the email exists, a reset link has been sent' });
     } catch (error) {
         logger.error('Password reset request failed', {
             error: error.message,
             stack: error.stack,
             email: req.body?.email
         });
-        res.status(500).json({error: 'Error processing password reset request'});
+        res.status(500).json({ error: 'Error processing password reset request' });
     }
 };
-
-exports.resetPassword = async (req, res) => {
+// uses old passwrod
+exports.changePassword = async (req, res) => {
     try {
-        const {token, newPassword} = req.body;
+        const { currentPassword, newPassword } = req.body;
 
-        if (!token || !newPassword) {
-            return res.status(400).json({error: 'Token and new password are required'});
+        // Validation
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Both current and new password are required' });
         }
 
         if (newPassword.length < 8) {
-            return res.status(400).json({error: 'Password must be at least 8 characters'});
+            return res.status(400).json({ error: 'New password must be at least 8 characters' });
+        }
+
+        // Get full user with password hash
+        const user = await User.getProfile(req.userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Verify current password
+        const isPasswordValid = await User.verifyPassword(user, currentPassword);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        // Update password
+        await User.updatePassword(req.userId, newPassword);
+
+        logger.info(`Password changed for user ${req.userId}`);
+        return res.json({ message: 'Password changed successfully' });
+
+    } catch (error) {
+        logger.error('Password change failed', {
+            error: error.message,
+            stack: error.stack,
+            userId: req.userId
+        });
+
+        if (error.message.includes('Invalid arguments')) {
+            return res.status(400).json({ error: 'Invalid password data' });
+        }
+        return res.status(500).json({ error: 'Failed to change password' });
+    }
+};
+
+// Password reset (uses token)
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: 'Token and new password are required' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
         }
 
         const resetToken = await PasswordResetToken.findByToken(token);
         if (!resetToken) {
-            logger.warn('Invalid password reset token attempt');
-            return res.status(400).json({error: 'Invalid or expired token'});
+            return res.status(400).json({ error: 'Invalid or expired token' });
         }
 
         await User.updatePassword(resetToken.user_id, newPassword);
         await PasswordResetToken.markAsUsed(token);
-
-        logger.info(`Password reset for user ID: ${resetToken.user_id}`);
-        res.json({message: 'Password updated successfully'});
+        return res.json({ message: 'Password reset successfully' });
     } catch (error) {
-        logger.error('Password reset failed', {
-            error: error.message,
-            stack: error.stack
-        });
-        res.status(500).json({error: 'Error resetting password'});
+        logger.error('Password reset failed', error);
+        res.status(500).json({ error: 'Error resetting password' });
     }
 };
 

@@ -112,6 +112,7 @@ const UserAccountPage: React.FC = () => {
                         })
                     );
 
+                    // @ts-ignore
                     setRecipes(recipesWithImages);
                 } catch (error) {
                     console.error('Failed to fetch user data:', error);
@@ -208,17 +209,31 @@ const UserAccountPage: React.FC = () => {
 
         setIsLoading(true);
         setError(null);
+
         try {
-            await api.post('/api/auth/reset-password', {
+            // @ts-ignore
+            const response = await api.post('/api/auth/change-password', {
                 currentPassword: formData.currentPassword,
                 newPassword: formData.newPassword
             });
 
             setIsEditingPassword(false);
-            setFormData(prev => ({...prev, currentPassword: '', newPassword: '', confirmPassword: ''}));
+            setFormData(prev => ({
+                ...prev,
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            }));
             setSuccess('Password changed successfully');
+
         } catch (error: any) {
-            setError(error.response?.data?.error || 'Failed to change password');
+            const errorMessage = error.response?.data?.error || 'Failed to change password';
+            setError(errorMessage);
+
+            // Clear current password field if it was wrong
+            if (errorMessage.includes('Current password is incorrect')) {
+                setFormData(prev => ({ ...prev, currentPassword: '' }));
+            }
         } finally {
             setIsLoading(false);
         }

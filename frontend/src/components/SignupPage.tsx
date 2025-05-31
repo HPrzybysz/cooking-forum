@@ -98,7 +98,6 @@ const SignUpPage: React.FC<SignUpPageProps> = ({onClose, switchToLogin, onSignup
             [name]: name === 'acceptTerms' ? checked : value
         }));
 
-        // Clear error when user starts typing
         if (errors[name as keyof SignUpForm]) {
             setErrors(prev => ({...prev, [name]: undefined}));
         }

@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/encryption');
 const logger = require('../utils/logger');
+const db = require('../config/db');
 
 const auth = async (req, res, next) => {
     try {
@@ -11,6 +12,7 @@ const auth = async (req, res, next) => {
 
         const decoded = verifyToken(token);
         req.userId = decoded.id;
+
         next();
     } catch (error) {
         logger.error('Authentication failed', {

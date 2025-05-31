@@ -34,7 +34,7 @@ const createTransport = () => {
         port: 465,
         secure: true,
         tls: {
-            rejectUnauthorized: true,
+            rejectUnauthorized: false,
             minVersion: 'TLSv1.3'
         }
     });
@@ -51,6 +51,7 @@ transporter.verify((error) => {
 });
 
 async function sendPasswordResetEmail(email, token) {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
     const mailOptions = {
         from: process.env.EMAIL_FROM,
         to: email,
@@ -59,7 +60,7 @@ async function sendPasswordResetEmail(email, token) {
       <div style="font-family: Arial, sans-serif;">
         <h2>Password Reset Request</h2>
         <p>Click below to reset your password:</p>
-        <a href="${process.env.FRONTEND_URL}" 
+        <a href="${resetLink}" 
            style="background: #4285F4; color: white; 
                   padding: 10px 15px; text-decoration: none;
                   border-radius: 5px; display: inline-block;">

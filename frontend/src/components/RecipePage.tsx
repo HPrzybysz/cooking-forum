@@ -19,18 +19,17 @@ import {
 } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+import { RecipeStatistics } from './types';
+import FavoriteButton from '../components/FavoriteButton';
+import RecipeRating from '../components/RecipeRating';
 import {getRecipe} from '../services/recipeService';
 import {getRecipeImages} from '../services/recipeImageService';
 import {getRecipeIngredients} from '../services/ingredientService';
 import {getRecipeSteps} from '../services/stepService';
+import { getImageUrl, getPrimaryImage, cleanupImageUrls } from '../utils/imageUtils';
+import api from "../api"
 import '../styles/RecipePage.scss';
 
-interface Author {
-    id: number;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-}
 
 interface Ingredient {
     id: number;
@@ -65,12 +64,22 @@ interface Recipe {
         id: number;
         name: string;
     };
-    author: Author;
+    author: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        avatarUrl?: string;
+    };
     ingredients: Ingredient[];
     steps: Step[];
     tags: string[];
     images: RecipeImage[];
     created_at: string;
+    user_id: number;
+    author_first_name: string;
+    author_last_name: string;
+    author_avatar?: string | { type: string; data: number[] };
+    statistics?: RecipeStatistics;
 }
 
 const RecipePage: React.FC = () => {
@@ -80,6 +89,26 @@ const RecipePage: React.FC = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const getAvatarUrl = (avatarData: any): string | undefined => {
+        if (!avatarData) return undefined;
+
+        if (typeof avatarData === 'string') {
+            return avatarData;
+        }
+
+        if (avatarData.type === 'Buffer' && Array.isArray(avatarData.data)) {
+            try {
+                const blob = new Blob([new Uint8Array(avatarData.data)]);
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                console.error('Error creating avatar URL:', error);
+                return undefined;
+            }
+        }
+
+        return undefined;
+    };
 
     const getImageUrl = (image: RecipeImage): string => {
         if (image.image_url) {
@@ -103,15 +132,15 @@ const RecipePage: React.FC = () => {
         const fetchRecipeData = async () => {
             try {
                 if (!id) return;
-
                 setLoading(true);
                 setError(null);
 
-                const [recipeData, images, ingredients, steps] = await Promise.all([
+                const [recipeData, images, ingredients, steps, statistics] = await Promise.all([
                     getRecipe(id),
                     getRecipeImages(id),
                     getRecipeIngredients(id),
-                    getRecipeSteps(id)
+                    getRecipeSteps(id),
+                    api.get(`/api/recipes/${id}/stats`).then(res => res.data)
                 ]);
 
                 setRecipe({
@@ -119,15 +148,16 @@ const RecipePage: React.FC = () => {
                     images: images || [],
                     ingredients: ingredients || [],
                     steps: steps || [],
+                    statistics,
                     author: {
                         id: recipeData.user_id,
                         firstName: recipeData.author_first_name,
                         lastName: recipeData.author_last_name,
-                        avatarUrl: recipeData.author_avatar
+                        avatarUrl: getAvatarUrl(recipeData.author_avatar)
                     },
                     tags: recipeData.tags || [],
                     equipment: recipeData.equipment,
-                    created_at: new Date(recipeData.created_at).toISOString()
+                    created_at: recipeData.created_at
                 });
             } catch (err) {
                 console.error('Error fetching recipe:', err);
@@ -149,6 +179,17 @@ const RecipePage: React.FC = () => {
             }
         };
     }, [id]);
+
+    useEffect(() => {
+        return () => {
+            if (recipe?.images) {
+                cleanupImageUrls(recipe.images);
+            }
+            if (recipe?.author.avatarUrl && recipe.author.avatarUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(recipe.author.avatarUrl);
+            }
+        };
+    }, [recipe]);
 
     if (loading) {
         return (
@@ -180,13 +221,26 @@ const RecipePage: React.FC = () => {
     return (
         <Box className="recipe-page" sx={{maxWidth: 1200, mx: 'auto', p: {xs: 1, sm: 2, md: 3}}}>
             {/* Title and Description */}
-            <Paper elevation={3} sx={{p: 3, mb: 3}}>
-                <Typography variant="h2" component="h1" gutterBottom>
-                    {recipe.title}
-                </Typography>
-                <Typography variant="body1" paragraph>
-                    {recipe.description}
-                </Typography>
+            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                    <Box>
+                        <Typography variant="h2" component="h1" gutterBottom>
+                            {recipe.title}
+                        </Typography>
+                        <Typography variant="body1" paragraph>
+                            {recipe.description}
+                        </Typography>
+                    </Box>
+                    <Box display="flex" flexDirection="column" alignItems="flex-end" gap={1}>
+                        <FavoriteButton recipeId={recipe.id} size="large" />
+                        <RecipeRating recipeId={recipe.id} showAverage size="large" />
+                        {recipe.statistics && (
+                            <Typography variant="body2" color="text.secondary">
+                                {recipe.statistics.favorite_count} favorites
+                            </Typography>
+                        )}
+                    </Box>
+                </Box>
             </Paper>
 
             {/* Images */}
@@ -199,16 +253,18 @@ const RecipePage: React.FC = () => {
                     <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
                         {primaryImage && (
                             <Box sx={{width: '100%', borderRadius: 1, overflow: 'hidden'}}>
-                                <img
-                                    src={getImageUrl(primaryImage)}
-                                    alt={recipe.title}
-                                    style={{
-                                        width: '100%',
-                                        height: 'auto',
-                                        maxHeight: '500px',
-                                        objectFit: 'cover'
-                                    }}
-                                />
+                                {primaryImage && (
+                                    <img
+                                        src={getImageUrl(primaryImage)}
+                                        alt={recipe.title}
+                                        style={{
+                                            width: '100%',
+                                            height: 'auto',
+                                            maxHeight: '500px',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                )}
                             </Box>
                         )}
                         {secondaryImages.length > 0 && (
@@ -234,20 +290,26 @@ const RecipePage: React.FC = () => {
             )}
 
             {/* Recipe Details */}
-            <Paper elevation={3} sx={{p: 2, mb: 3}}>
-                <Box sx={{display: 'flex', gap: 3, flexWrap: 'wrap'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <AccessTimeIcon color="primary" sx={{mr: 1}}/>
+            <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <AccessTimeIcon color="primary" sx={{ mr: 1 }} />
                         <Typography variant="body1">
                             {recipe.prep_time} minutes
                         </Typography>
                     </Box>
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <RestaurantIcon color="primary" sx={{mr: 1}}/>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <RestaurantIcon color="primary" sx={{ mr: 1 }} />
                         <Typography variant="body1">
                             {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}
                         </Typography>
                     </Box>
+                    {/*<Box sx={{ display: 'flex', alignItems: 'center' }}>*/}
+                    {/*    <FavoriteIcon color="primary" sx={{ mr: 1 }} />*/}
+                    {/*    <Typography variant="body1">*/}
+                    {/*        {recipe.favorites || 0} favorites*/}
+                    {/*    </Typography>*/}
+                    {/*</Box>*/}
                 </Box>
             </Paper>
 
@@ -323,7 +385,7 @@ const RecipePage: React.FC = () => {
             )}
 
             {/* Footer */}
-            <Paper elevation={3} sx={{p: 3}}>
+            <Paper elevation={3} sx={{ p: 3 }}>
                 <Box sx={{
                     display: 'flex',
                     flexDirection: isMobile ? 'column' : 'row',
@@ -331,11 +393,11 @@ const RecipePage: React.FC = () => {
                     alignItems: isMobile ? 'flex-start' : 'center',
                     gap: 2
                 }}>
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Avatar
                             src={recipe.author.avatarUrl}
                             alt={`${recipe.author.firstName} ${recipe.author.lastName}`}
-                            sx={{width: 56, height: 56}}
+                            sx={{ width: 56, height: 56 }}
                         />
                         <Box>
                             <Typography variant="body1" fontWeight="medium">

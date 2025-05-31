@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import '../styles/LoginPage.scss';
 import SignUpPage from "./SignupPage.tsx";
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const backgroundImages = [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop',
@@ -31,9 +32,10 @@ interface LoginForm {
 interface LoginPageProps {
     onClose: () => void;
     onLoginSuccess: () => void;
+    onSignupSuccess?: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
+const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess, onSignupSuccess}) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const [formData, setFormData] = useState<LoginForm>({
@@ -43,6 +45,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
     const [showSignUp, setShowSignUp] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { login, isLoading } = useAuth();
+    const navigate = useNavigate();
 
     const BlackBackgroundLayer = () => (
         <Box sx={{
@@ -89,6 +92,14 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
         }
     };
 
+    const handleSwitchToSignup = () => {
+        if (onSignupSuccess) {
+            setShowSignUp(true);
+        } else {
+            navigate('/signup');
+        }
+    };
+
     return (
         <>
             <BlackBackgroundLayer/>
@@ -96,7 +107,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                 <SignUpPage
                     onClose={onClose}
                     switchToLogin={() => setShowSignUp(false)}
-                    onSignupSuccess={onLoginSuccess}
+                    onSignupSuccess={onSignupSuccess}
                 />
             ) : (
                 <Box className="login-page-container">
@@ -204,7 +215,12 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                                 />
 
                                 <Box className="forgot-password-link">
-                                    <Link href="#" variant="body2" color="primary">
+                                    <Link
+                                        onClick={() => navigate('/reset-password')}
+                                        variant="body2"
+                                        color="primary"
+                                        sx={{ cursor: 'pointer' }}
+                                    >
                                         Forgot your password?
                                     </Link>
                                 </Box>
@@ -235,7 +251,7 @@ const LoginPage: React.FC<LoginPageProps> = ({onClose, onLoginSuccess}) => {
                                     Don't have an account?{' '}
                                     <Link
                                         className="switch-link"
-                                        onClick={() => setShowSignUp(true)}
+                                        onClick={handleSwitchToSignup}
                                         sx={{cursor: 'pointer'}}
                                     >
                                         Sign up

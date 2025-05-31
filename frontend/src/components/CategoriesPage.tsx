@@ -16,21 +16,6 @@ const CategoriesPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const data = await getCategories();
-                setCategories(data);
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCategories();
-    }, []);
-
-    useEffect(() => {
         let isMounted = true;
 
         const fetchCategories = async () => {
@@ -90,18 +75,11 @@ const CategoriesPage: React.FC = () => {
 
             <Grid container spacing={3} className="categories-grid">
                 {categories.map((category) => (
-                    <Grid key={category.id}>
+                    <Grid item xs={12} sm={6} md={4} key={category.id}>
                         <Box
                             className="category-card"
                             onClick={() => handleCategoryClick(category.id)}
                         >
-                            <Box className="category-image">
-                                <img
-                                    src={category.imageUrl || 'https://placehold.co/600x400'}
-                                    alt={category.name}
-                                    loading="lazy"
-                                />
-                            </Box>
                             <Typography variant="h3" className="category-name">
                                 {category.name}
                             </Typography>

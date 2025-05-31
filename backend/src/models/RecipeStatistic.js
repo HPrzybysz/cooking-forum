@@ -41,7 +41,7 @@ class RecipeStatistic {
             `SELECT r.*, rs.view_count, rs.favorite_count
        FROM recipes r
        JOIN recipe_statistics rs ON r.id = rs.recipe_id
-       ORDER BY (rs.view_count * 0.7 + rs.favorite_count * 0.3) DESC
+       ORDER BY rs.favorite_count DESC
        LIMIT ?`,
             [limit]
         );

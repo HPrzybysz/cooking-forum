@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {Box, Typography, Button, CircularProgress, Grid} from '@mui/material';
-import RecipeCard from './RecipeCard.tsx';
+import RecipeCard from './RecipeCard';
 import {getRecipesByCategory} from '../services/categoryService';
 import {Recipe} from './types';
 
@@ -63,14 +63,14 @@ const CategoryRecipesPage: React.FC = () => {
                 <Typography variant="body1">No recipes found in this category.</Typography>
             ) : (
                 <Grid container spacing={3}>
-                    {recipes.map((recipe) => (
-                        <Grid key={recipe.id}>
-                            <RecipeCard
-                                title={recipe.title}
-                                image={recipe.imageUrl || 'https://placehold.co/600x400'}
-                                onClick={() => navigate(`/recipe/${recipe.id}`)}
-                            />
-                        </Grid>
+                    {recipes.map(recipe => (
+                        <RecipeCard
+                            key={recipe.id}
+                            recipeId={recipe.id}
+                            title={recipe.title}
+                            statistics={recipe.statistics}
+                            onClick={() => navigate(`/recipe/${recipe.id}`)}
+                        />
                     ))}
                 </Grid>
             )}

@@ -4,6 +4,7 @@ const PreparationStep = require('../models/PreparationStep');
 const Tag = require('../models/Tag');
 const RecipeImage = require('../models/RecipeImage');
 const {generateToken} = require('../utils/encryption');
+const db = require('../config/db');
 
 exports.createRecipe = async (req, res) => {
     try {

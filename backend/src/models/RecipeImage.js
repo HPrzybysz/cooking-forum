@@ -12,10 +12,14 @@ class RecipeImage {
 
     static async getByRecipeId(recipeId) {
         const [rows] = await db.execute(
-            'SELECT * FROM recipe_images WHERE recipe_id = ? ORDER BY is_primary DESC',
+            'SELECT id, recipe_id, image_data, is_primary, created_at FROM recipe_images WHERE recipe_id = ? ORDER BY is_primary DESC',
             [recipeId]
         );
-        return rows;
+
+        return rows.map(row => ({
+            ...row,
+            image_data: row.image_data ? Buffer.from(row.image_data) : null
+        }));
     }
 
     static async setPrimaryImage(recipeId, imageId) {

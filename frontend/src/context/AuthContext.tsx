@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import api from '../api';
 
 export interface User {
@@ -13,26 +13,20 @@ interface AuthContextType {
     user: User | null;
     token: string | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<User>;
     register: (
         firstName: string,
         lastName: string,
         email: string,
         password: string
-    ) => Promise<void>;
+    ) => Promise<User>;
     logout: () => Promise<void>;
-    setUser: (user: (prev: (User | null)) => (null | {
-        firstName: string;
-        lastName: string;
-        avatarUrl: any;
-        id: number;
-        email: string
-    })) => void;
+    refreshToken: () => Promise<void>;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +39,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         avatarUrl: backendUser.avatar_url
     });
 
+    const refreshToken = async () => {
+        try {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                const response = await api.post('/api/auth/refresh', {}, {
+                    headers: {
+                        Authorization: `Bearer ${storedToken}`
+                    }
+                });
+                const newToken = response.data.token;
+                localStorage.setItem('token', newToken);
+                api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+                setToken(newToken);
+            }
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            logout();
+        }
+    };
 
     useEffect(() => {
         const initializeAuth = async () => {
@@ -54,14 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
                     api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
                     const response = await api.get('/api/users/me');
                     setUser(transformUser(response.data));
-
-                    setUser({
-                        id: response.data.id,
-                        firstName: response.data.first_name,
-                        lastName: response.data.last_name,
-                        email: response.data.email,
-                        avatarUrl: response.data.avatar_url
-                    });
                     setToken(storedToken);
                 }
             } catch (error) {
@@ -73,21 +78,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         };
 
         initializeAuth();
+
+        const interval = setInterval(refreshToken, 30 * 60 * 1000);
+        return () => clearInterval(interval);
     }, []);
 
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const response = await api.post('/api/auth/login', {email, password});
-            const {user: backendUser, token} = response.data;
-            setUser(transformUser(backendUser));
+            const response = await api.post('/api/auth/login', { email, password });
+            const { user: backendUser, token } = response.data;
+            const transformedUser = transformUser(backendUser);
 
             localStorage.setItem('token', token);
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            setUser(user);
+            setUser(transformedUser);
             setToken(token);
-            window.location.reload();
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+
+            return transformedUser;
         } catch (error: any) {
             throw new Error(error.response?.data?.error || 'Login failed');
         } finally {
@@ -109,11 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
                 email,
                 password,
             });
-            const {user, token} = response.data;
+            const { user: backendUser, token } = response.data;
+            const transformedUser = transformUser(backendUser);
 
             localStorage.setItem('token', token);
-            setUser(user);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            setUser(transformedUser);
             setToken(token);
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+
+            return transformedUser;
         } catch (error: any) {
             throw new Error(error.response?.data?.error || 'Registration failed');
         } finally {
@@ -136,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({children}
         }
     };
 
-    const value = {user, token, isLoading, login, register, logout, setUser};
+    const value = { user, token, isLoading, login, register, logout, refreshToken, setUser };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

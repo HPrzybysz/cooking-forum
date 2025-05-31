@@ -37,7 +37,20 @@ exports.uploadImages = async (req, res) => {
 exports.getRecipeImages = async (req, res) => {
     try {
         const images = await RecipeImage.getByRecipeId(req.params.recipeId);
-        res.json(images);
+
+        const formattedImages = images.map(image => ({
+            id: image.id,
+            recipe_id: image.recipe_id,
+            image_url: image.image_url || null,
+            image_data: image.image_data ? {
+                type: 'Buffer',
+                data: Array.from(image.image_data)
+            } : null,
+            is_primary: Boolean(image.is_primary),
+            created_at: image.created_at
+        }));
+
+        res.json(formattedImages);
     } catch (error) {
         res.status(500).json({error: error.message});
     }

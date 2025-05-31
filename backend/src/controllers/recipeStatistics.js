@@ -9,15 +9,6 @@ exports.getRecipeStatistics = async (req, res) => {
     }
 };
 
-exports.trackView = async (req, res) => {
-    try {
-        await RecipeStatistic.incrementViewCount(req.params.recipeId);
-        res.json({message: 'View counted'});
-    } catch (error) {
-        res.status(500).json({error: error.message});
-    }
-};
-
 exports.getPopularRecipes = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
