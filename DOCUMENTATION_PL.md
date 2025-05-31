@@ -12,6 +12,10 @@ zarządzanie sesjami.
 
 #### Opis:
 
+- używa mysql
+- Dane w fixtures.sql (nie zawiera obrazków)
+
+
 - Główne tabele
 
   1. Użytkownicy (users)
