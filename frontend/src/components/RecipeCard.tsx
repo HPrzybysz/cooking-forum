@@ -46,7 +46,19 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 
     const getImageUrl = (image?: RecipeImage): string => {
         if (!image) return 'https://placehold.co/600x400?text=No+Image';
-        return image.image_url || 'https://placehold.co/600x400?text=No+Image';
+
+        try {
+            if (image.image_data) {
+                const base64String = btoa(
+                    String.fromCharCode(...new Uint8Array(image.image_data.data))
+                );
+                return `data:image/${image.image_data.type || 'jpeg'};base64,${base64String}`;
+            }
+            return image.image_url || 'https://placehold.co/600x400?text=No+Image';
+        } catch (error) {
+            console.error('Error processing image:', error);
+            return 'https://placehold.co/600x400?text=Error';
+        }
     };
 
 
