@@ -36,7 +36,7 @@ describe('Recipe Model', () => {
         });
 
         it('should return undefined for non-existent recipe', async () => {
-            const recipe = await Recipe.getById(999999);
+            const recipe = await Recipe.getById(2137);
             expect(recipe).toBeUndefined();
         });
     });

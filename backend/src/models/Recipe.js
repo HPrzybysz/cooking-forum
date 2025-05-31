@@ -21,6 +21,7 @@ class Recipe {
         }
     }
 
+
     static async getById(id) {
         const [rows] = await db.execute(
             `SELECT r.*, 

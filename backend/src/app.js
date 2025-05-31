@@ -19,6 +19,8 @@ const Favorite = require('./models/Favorite');
 const path = require('path');
 
 const app = express();
+let server;
+let syncJob;
 
 // CORS config
 const corsOptions = {
@@ -32,13 +34,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
-
-//recipe sync
-cron.schedule('* * * * *', async () => {
-    console.log('Running favorite count sync...');
-    await Favorite.syncFavoriteCounts();
-    console.log('Favorite count sync completed');
-});
 
 // Middleware
 app.use(bodyParser.json());
@@ -63,12 +58,20 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 const errorHandler = require('./middlewares/errorHandler');
 app.use(errorHandler);
 
-
-const PORT = process.env.PORT || 5000;
-
 if (process.env.NODE_ENV !== 'test') {
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`Server probably running on port ${PORT}`);
+    server = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
     });
 }
+if (process.env.NODE_ENV !== 'test') {
+    syncJob = cron.schedule('* * * * *', async () => {
+        console.log('Running favorite count sync...');
+        await Favorite.syncFavoriteCounts();
+        console.log('Favorite count sync completed');
+    });
+}
+module.exports = {
+    app,
+    syncJob
+};
