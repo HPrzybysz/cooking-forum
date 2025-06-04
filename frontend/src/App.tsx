@@ -1,6 +1,6 @@
 import React from 'react';
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
-import {AuthProvider} from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import SignUpPage from './components/SignupPage';
@@ -15,6 +15,10 @@ import PasswordResetRequest from './components/PasswordResetRequest';
 import PasswordResetForm from './components/PasswordResetForm';
 import AuthModal from './components/AuthModal.tsx';
 import FavoritesPage from './components/FavoritesPage';
+
+interface AppProps {
+    RouterComponent?: React.ComponentType<{ children: React.ReactNode }>;
+}
 
 const AppRoutes = () => {
     return (
@@ -53,14 +57,14 @@ const AppRoutes = () => {
     );
 };
 
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({ RouterComponent = Router }) => {
     return (
         <AuthProvider>
-            <Router>
+            <RouterComponent>
                 <Header/>
                 <AuthModal/>
                 <AppRoutes/>
-            </Router>
+            </RouterComponent>
         </AuthProvider>
     );
 };
