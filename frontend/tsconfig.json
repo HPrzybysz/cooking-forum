@@ -6,6 +6,16 @@
   ],
 
   "compilerOptions": {
-    "types": ["vite/client"],
-  }
+    "types": ["vite/client", "jest", "@testing-library/jest-dom", "@testing-library/react", "react-router-dom"],
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "target": "ES6",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*", "jest.setup.js"]
 }
